@@ -13,7 +13,7 @@
 This repository contains three dictionaries:
  - `data`, with the raw, interim and processed data.
  - `images`, with the exported images supporting this report.
- - `notebook`, with the `Bridges.ipynb` and `Roads_EDA.ipynb` Jupyter Notebooks containing all code. HTML versions of the notebooks are also availble to quickly look through.
+ - `notebook`, with the `Bridges.ipynb` and `Roads_EDA.ipynb` Jupyter Notebooks containing all code. HTML versions of the notebooks are also available to quickly look through.
 
 The report continues below.
 
@@ -33,9 +33,9 @@ According to the bridge file, there are 3.193 bridges in Bangladesh. Up to 348 o
 
 #### Mapping consistency
 
-In the road file there are several mapping quality issues. There are sufficient data points to trace a road through the map but the road is showing several deviation points. Figure 1 is showing the N1 of Bangladesh where several data points are showing inconsistent behavior. These are shown by the blue line in the figure. This kind of behavior is recognized for N, R, and Z roads. For Z roads this leads to complitly horizontal or vertical road shapes.
+In the road file there are several mapping quality issues. There are sufficient data points to trace a road through the map but the road is showing several deviation points. Figure 1 is showing the N1 of Bangladesh where several data points are showing inconsistent behavior. These are shown by the blue line in the figure. This kind of behavior is recognized for N, R, and Z roads. For Z roads this leads to completely horizontal or vertical road shapes.
 
-Another mapping inconsistency is occurring in the bridges file: when visualized, there are several bridges included in the file that are localized outside of Bangladesh or in the sea. The bridges that are in the sea will be deleted. For the bridges outside Bangladesh the coordinates are swiched, it is unclear if this is also the case for the second and the minute coordinates.
+Another mapping inconsistency is occurring in the bridges file: when visualized, there are several bridges included in the file that are localized outside of Bangladesh or in the sea. The bridges that are in the sea will be deleted. For the bridges outside Bangladesh the coordinates are switched, it is unclear if this is also the case for the second and the minute coordinates.
 
 ![](images/roads-longitude-median.png)
 
@@ -49,7 +49,7 @@ In the bridge file there is a need for recording the coordinates of every bridge
 
 (1) Coordinates = degree + minutes / 60 + seconds / 3600
 
-By using Formula 1 a syntactic consistency issue is solved. Another ecountered error in the bridge file is the construction year of the some bridges. When mapping out some bridges are constructed after 2022.
+By using Formula 1 a syntactic consistency issue is solved. Another encountered error in the bridge file is the construction year of the some bridges. When mapping out some bridges are constructed after 2022.
 
 ## 2. Designed solutions
 
@@ -60,7 +60,7 @@ Two components of the data were analysed, the road network in `_road.tcv` and th
 For the road data, we executed the following steps:
 
 - The `_road.tcv` was loaded into a Pandas DataFrame. In this dataframe, each row consisted of a road, with a large number of sequences of 3 columns containing the LRP name, latitude and longitude.
-- We wrote a function `dataframe_per_road` in which each road was put into a seperate dataframe. Each dataframe has 3 columns, one with all the LRP names, one with the latitues and longitudes.
+- We wrote a function `dataframe_per_road` in which each road was put into a separate dataframe. Each dataframe has 3 columns, one with all the LRP names, one with the latitudes and longitudes.
 
 ```python
 def dataframe_per_road(single_row_df):
@@ -80,7 +80,7 @@ def dataframe_per_road(single_row_df):
 
 - To detect the outliers in the longitude and latitude data, we decided to calculate rolling values for the median and standard deviation. The median doesn't change with a single large outlier, so it can be easily compared to outlier values.
 - If the a values was more than 2 standard deviations from the 7-value rolling median value, we dropped it.
-- The following function was writen to do so. First a rolling median and standard deviation was calcualted:
+- The following function was written to do so. First a rolling median and standard deviation was calculated:
 
 ```python
 def filter_all(df_dict, window=7, max_std=2):
@@ -160,7 +160,7 @@ The cleaned-up roads file is available in `data/processed/_roads.tcv`.
 
 ### 2.2 Bridges
 
-The bridge data was analysed and cleaned up from both a traditional data science perspective, as well as geospatially.
+The bridge data was analyzed and cleaned up from both a traditional data science perspective, as well as geospatially.
 
 #### Traditional
 
@@ -285,23 +285,23 @@ The resulting databases was exported back to Excel and is available in in `data/
 
 ## 3. Reflection
 
-While looking at the original data file and making the EDA as a group we made the following assumption: the errors in the data were made by hand and did not have a inaucuracy issue based on missing values, stochastic innaucuratie, or GPS variation. This made finding the errors quite difficult and let us think in a different way.
+While looking at the original data file and making the EDA as a group we made the following assumption: the errors in the data were made by hand and did not have a inaccuracy issue based on missing values, stochastic inaccurate, or GPS variation. This made finding the errors quite difficult and let us think in a different way.
 
 ### 3.1 Roads
 
-Hier nog een stukje over dat plan van jou Ewout
 
-The water ways were inconcistant, some of the water ways were passing through land. A way to fix this was by assuming that every water way was passing through the middle of every river. From there a comparison alogorithm could be made to compare the coordinates of the middle of the river and the existing water way.
+
+The water ways were inconsistent, some of the water ways were passing through land. A way to fix this was by assuming that every water way was passing through the middle of every river. From there a comparison algorithm could be made to compare the coordinates of the middle of the river and the existing water way.
 
 ### 3.2 Bridges
 
-In the data cleaning the main focus was put on finding non existant bridges and remove them from the data. There was no time to analyse the overlap in information between the roads and bridge file. For that one or both of the the following plans could be used:
- - The coordinate degree, minute, and second of roads could be rearanged with -+ 1 to beter fit a potential bridge.
+In the data cleaning the main focus was put on finding non existent bridges and remove them from the data. There was no time to analyze the overlap in information between the roads and bridge file. For that one or both of the following plans could be used:
+ - The coordinate degree, minute, and second of roads could be rearranged with -+ 1 to better fit a potential bridge.
  - The geospatial buffers could be drawn around bridges, after which it could be compared if a road was within a certain radius of a bridge.
 
-This is also an indentification method to look at the bridges on the Bagladesh land. In the presented data cleaning all these bridges are presumed fitted on roads but this needs to be checked. This could be done by comparing the overlap in road and bridge coordinates.
+This is also an identification method to look at the bridges on the Bangladesh land. In the presented data cleaning all these bridges are presumed fitted on roads but this needs to be checked. This could be done by comparing the overlap in road and bridge coordinates.
 
 ## References:
 
  - Huang, Y., Automated Simulation Model Generation, Delft University of Technology, 2013, pp.44-52
- - Road Traffic Technology. (2014). Port Mann Bridge. https://www.roadtraffic-technology.com/projects/port-mann-bridgehighway-1-project/. Geraadpleegd op 2022, van www.roadtraffic-technology.com
+ - Road Traffic Technology. (2014). Port Mann Bridge. https://www.roadtraffic-technology.com/projects/port-mann-bridgehighway-1-project/. Looked up on 2022, from www.roadtraffic-technology.com
