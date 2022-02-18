@@ -289,7 +289,7 @@ While looking at the original data file and making the EDA as a group we made th
 
 ### 3.1 Roads
 
-
+The roads were relatively lightly processed, since the data was very unnatural. Most of the time with imperfect data, there are either missing values, there is noise following some statistical pattern is available or data is incorrectly indexed or labelled. With this data, it was very clear many of the data was manually altered with. For example, in many cases a full integer was added to a coordinate. While it might be appealing to try to just add a single integer back, this is a very bad idea, since you can't validate it. An thus it might be an in for a data security breach. In this case, it might be better to find other data sources, like OpenStreetMap, then to try to work with data from potentially hostile actors.
 
 The water ways were inconsistent, some of the water ways were passing through land. A way to fix this was by assuming that every water way was passing through the middle of every river. From there a comparison algorithm could be made to compare the coordinates of the middle of the river and the existing water way.
 
