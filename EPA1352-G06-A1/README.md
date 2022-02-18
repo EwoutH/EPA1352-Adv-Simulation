@@ -8,7 +8,7 @@
 - Timo Frazer (4579992)
 - Zoé Huizing (4660455)
 
-**The sturcture**
+**The structure**
 
 This repository contains three dictionaries:
  - `data`, with the raw, interim and processed data.
@@ -175,7 +175,7 @@ Bridge['LatitudeDecimal'] = Bridge['LatitudeDegree'] + (Bridge['LatitudeMinute']
 ```
 
 - Since there were many duplicated bridged, we have dropped them and kept the first one.
-- Also the bridges with missing values were dropped.
+- Also the bridges with missing values were dropped as it was hard to find reliable data to replace it with.
 - In order to identify some outliers, the bridges were checked on their characteristics.
 - Bridges with a width larger than 67 meters were dropped. Because the largest bridge of the world has a width of 67 meters (Road Traffic Technology, 2022).
 
