@@ -1,5 +1,6 @@
 from mesa import Agent
 from enum import Enum
+from triangular_function import get_delay_value
 
 
 # ---------------------------------------------------------------
@@ -56,11 +57,11 @@ class Bridge(Infra):
 
         self.condition = condition
 
-        # TODO
+        # TODO: use get_delay_value from triangular fucntion considering current bridge class
+        # Consider recalculating this for each vehicle
         self.delay_time = self.random.randrange(0, 10)
         # print(self.delay_time)
 
-    # TODO
     def get_delay_time(self):
         return self.delay_time
 
@@ -233,10 +234,12 @@ class Vehicle(Agent):
         Vehicle waits or drives at each step
         """
         if self.state == Vehicle.State.WAIT:
-            self.waiting_time = max(self.waiting_time - 1, 0)
+            self.waiting_time = max(self.waiting_time - 1, 0) # TODO: Vehicle.step_time
             if self.waiting_time == 0:
                 self.waited_at = self.location
                 self.state = Vehicle.State.DRIVE
+        
+        # TODO: Model is wrong, drive starts in same minute that wait ends
 
         if self.state == Vehicle.State.DRIVE:
             self.drive()
@@ -256,6 +259,7 @@ class Vehicle(Agent):
         if distance_rest > 0:
             # go to the next object
             self.drive_to_next(distance_rest)
+            # TODO: Maybe transfer time left to drive on next object
         else:
             # remain on the same object
             self.location_offset += distance
