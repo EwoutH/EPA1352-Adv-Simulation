@@ -57,13 +57,11 @@ class Bridge(Infra):
 
         self.condition = condition
 
-        # TODO: use get_delay_value from triangular fucntion considering current bridge class
-        # Consider recalculating this for each vehicle
-        self.delay_time = self.random.randrange(0, 10)
-        # print(self.delay_time)
+        # TODO: read bridgeclass from datafile and add triangular function
+        self.bridge_class = 'M'
 
     def get_delay_time(self):
-        return self.delay_time
+        return get_delay_value(self.bridge_class)
 
 
 # ---------------------------------------------------------------
