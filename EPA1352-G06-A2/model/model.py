@@ -55,8 +55,10 @@ class BangladeshModel(Model):
 
     step_time = 1
 
-    def __init__(self, seed=None, x_max=500, y_max=500, x_min=0, y_min=0):
+    def __init__(self, scenario, seed=None, x_max=500, y_max=500, x_min=0, y_min=0):
 
+        self.scenario = scenario
+        self.scenario_chances = {}
         self.schedule = BaseScheduler(self)
         self.running = True
         self.path_ids_dict = defaultdict(lambda: pd.Series())
@@ -73,7 +75,14 @@ class BangladeshModel(Model):
         Warning: the labels are the same as the csv column labels
         """
 
-        df = pd.read_csv('../data/demo-1.csv') # TODO make variable for data file
+        df = pd.read_csv('../data/demo-3-cond.csv') # TODO make variable for data file
+
+        # Read in the scenario table
+        scenarios_df = pd.read_csv('../data/scenario_delays.csv', sep=';', index_col='Scenario')
+        scenarios_df = scenarios_df / 100  # percent to fraction
+
+        # Create scenario dictionary with break-down chance for each bridge type
+        self.scenario_chances = scenarios_df.loc[[self.scenario]].to_dict(orient="records")[0]
 
         # a list of names of roads to be generated
         roads = ['N1']
@@ -136,7 +145,7 @@ class BangladeshModel(Model):
                     self.sources.append(agent.unique_id)
                     self.sinks.append(agent.unique_id)
                 elif model_type == 'bridge':
-                    agent = Bridge(row['id'], self, row['length'], row['name'], row['road'])
+                    agent = Bridge(row['id'], self, row['length'], row['name'], row['road'], row['condition'])
                 elif model_type == 'link':
                     agent = Link(row['id'], self, row['length'], row['name'], row['road'])
 

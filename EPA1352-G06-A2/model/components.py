@@ -1,3 +1,5 @@
+import random
+
 from mesa import Agent
 from enum import Enum
 from triangular_function import get_delay_value
@@ -55,13 +57,24 @@ class Bridge(Infra):
                  name='Unknown', road_name='Unknown', condition='Unknown'):
         super().__init__(unique_id, model, length, name, road_name)
 
+        # TODO: Read condition from data file
         self.condition = condition
+        print(self.condition)
+
+        # Calculate broken state from scenario and bridge condition
+        broken_chance = model.scenario_chances(f"Cat{self.condition}")
+        self.broken = broken_chance > random.uniform(0, 1)
 
         # TODO: read bridgeclass from datafile and add triangular function
         self.bridge_class = 'M'
 
     def get_delay_time(self):
-        return get_delay_value(self.bridge_class)
+        if self.broken:
+            return get_delay_value(self.bridge_class)
+        else:
+            return 0
+
+
 
 
 # ---------------------------------------------------------------

@@ -69,6 +69,7 @@ canvas_height = 400
 space = SimpleCanvas(agent_portrayal, canvas_width, canvas_height)
 
 server = ModularServer(BangladeshModel,
+                       4,  # Scenario TODO doesn't work
                        [space],
                        "Transport Model Demo",
                        {"seed": 1234567})

@@ -13,9 +13,10 @@ from model import BangladeshModel
 # run time 1000 ticks
 run_length = 1000
 
+scenario = 4
 seed = 1234567
 
-sim_model = BangladeshModel(seed=seed)
+sim_model = BangladeshModel(scenario, seed=seed)
 
 # Check if the seed is set
 print("SEED " + str(sim_model._seed))
