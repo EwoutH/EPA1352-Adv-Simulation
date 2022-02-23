@@ -62,7 +62,7 @@ class Bridge(Infra):
         print(self.condition)
 
         # Calculate broken state from scenario and bridge condition
-        broken_chance = model.scenario_chances(f"Cat{self.condition}")
+        broken_chance = model.scenario_chances[f"Cat{self.condition}"]
         self.broken = broken_chance > random.uniform(0, 1)
 
         # TODO: read bridgeclass from datafile and add triangular function

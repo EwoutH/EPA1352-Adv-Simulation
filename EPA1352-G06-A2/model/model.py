@@ -55,9 +55,12 @@ class BangladeshModel(Model):
 
     step_time = 1
 
-    def __init__(self, scenario, seed=None, x_max=500, y_max=500, x_min=0, y_min=0):
+    def __init__(self, scenario, data_path='../data/simulation_file_N1.csv',
+                 seed=None, x_max=500, y_max=500, x_min=0, y_min=0):
 
         self.scenario = scenario
+        self.data_path = data_path
+
         self.scenario_chances = {}
         self.schedule = BaseScheduler(self)
         self.running = True
@@ -75,7 +78,7 @@ class BangladeshModel(Model):
         Warning: the labels are the same as the csv column labels
         """
 
-        df = pd.read_csv('../data/demo-3-cond.csv') # TODO make variable for data file
+        df = pd.read_csv(self.data_path)
 
         # Read in the scenario table
         scenarios_df = pd.read_csv('../data/scenario_delays.csv', sep=';', index_col='Scenario')
