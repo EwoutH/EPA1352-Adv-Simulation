@@ -1,6 +1,7 @@
 from mesa import Model
 from mesa.time import BaseScheduler
 from mesa.space import ContinuousSpace
+from mesa.datacollection import DataCollector
 from components import Source, Sink, SourceSink, Bridge, Link
 import pandas as pd
 from collections import defaultdict
@@ -68,6 +69,9 @@ class BangladeshModel(Model):
         self.space = None
         self.sources = []
         self.sinks = []
+        self.durations = []
+        
+        self.datacollector = DataCollector(model_reporters={"durations": "durations"})
 
         self.generate_model()
 
