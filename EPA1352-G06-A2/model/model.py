@@ -70,8 +70,6 @@ class BangladeshModel(Model):
         self.sources = []
         self.sinks = []
         self.durations = []
-        
-        self.datacollector = DataCollector(model_reporters={"durations": "durations"})
 
         self.generate_model()
 
