@@ -59,7 +59,6 @@ class Bridge(Infra):
 
         # TODO: Read condition from data file
         self.condition = condition
-        print(self.condition)
 
         # Calculate broken state from scenario and bridge condition
         broken_chance = model.scenario_chances[f"Cat{self.condition}"]
@@ -99,7 +98,7 @@ class Sink(Infra):
     def remove(self, vehicle):
         self.model.schedule.remove(vehicle)
         self.vehicle_removed_toggle = not self.vehicle_removed_toggle
-        print(str(self) + ' REMOVE ' + str(vehicle))
+        # print(str(self) + ' REMOVE ' + str(vehicle))
 
 
 # ---------------------------------------------------------------
@@ -125,7 +124,7 @@ class Source(Infra):
     """
 
     truck_counter = 0
-    generation_frequency = 5
+    generation_frequency = 5  # TODO: Make model parameter
     vehicle_generated_flag = False
 
     def step(self):
@@ -146,7 +145,7 @@ class Source(Infra):
                 Source.truck_counter += 1
                 self.vehicle_count += 1
                 self.vehicle_generated_flag = True
-                print(str(self) + " GENERATE " + str(agent))
+                # print(str(self) + " GENERATE " + str(agent))
         except Exception as e:
             print("Oops!", e.__class__, "occurred.")
 
@@ -249,7 +248,7 @@ class Vehicle(Agent):
             if self.waiting_time == 0:
                 self.waited_at = self.location
                 self.state = Vehicle.State.DRIVE
-        
+
         # TODO: Model is wrong, drive starts in same minute that wait ends
 
         if self.state == Vehicle.State.DRIVE:
@@ -258,7 +257,7 @@ class Vehicle(Agent):
         """
         To print the vehicle trajectory at each step
         """
-        print(self)
+        # print(self)
 
     def drive(self):
 
@@ -288,6 +287,7 @@ class Vehicle(Agent):
             # arrive at the sink
             self.arrive_at_next(next_infra, 0)
             self.removed_at_step = self.model.schedule.steps
+            self.model.durations.append(self.removed_at_step - self.generated_at_step)
             self.location.remove(self)
             return
         elif isinstance(next_infra, Bridge):
