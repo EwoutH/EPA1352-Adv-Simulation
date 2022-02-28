@@ -1,0 +1,4 @@
+# Don't sync the .idea/ folder and cache and temporary files
+.idea/
+
+*.pyc
