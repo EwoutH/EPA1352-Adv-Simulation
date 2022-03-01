@@ -54,18 +54,16 @@ class Bridge(Infra):
     """
 
     def __init__(self, unique_id, model, length=0,
-                 name='Unknown', road_name='Unknown', condition='Unknown'):
+                 name='Unknown', road_name='Unknown', condition='Unknown', length_class='Unknown'):
         super().__init__(unique_id, model, length, name, road_name)
 
-        # TODO: Read condition from data file
         self.condition = condition
 
         # Calculate broken state from scenario and bridge condition
         broken_chance = model.scenario_chances[f"Cat{self.condition}"]
         self.broken = broken_chance > random.uniform(0, 1)
 
-        # TODO: read bridgeclass from datafile and add triangular function
-        self.bridge_class = 'M'
+        self.bridge_class = length_class
 
     def get_delay_time(self):
         if self.broken:

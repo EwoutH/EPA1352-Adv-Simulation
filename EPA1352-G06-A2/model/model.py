@@ -150,7 +150,7 @@ class BangladeshModel(Model):
                     self.sources.append(agent.unique_id)
                     self.sinks.append(agent.unique_id)
                 elif model_type == 'bridge':
-                    agent = Bridge(row['id'], self, row['length'], row['name'], row['road'], row['condition'])
+                    agent = Bridge(row['id'], self, row['length'], row['name'], row['road'], row['condition'], row['length_class'])
                 elif model_type == 'link':
                     agent = Link(row['id'], self, row['length'], row['name'], row['road'])
 
