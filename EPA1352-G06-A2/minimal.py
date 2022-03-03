@@ -25,11 +25,12 @@ delay_dict = {
     "S": ("uniform", (10, 20)),
 }
 
+
 class Minimal():
-    def __init__(self, scenario, n_trucks=100, speed=48, seed=None):
+    def __init__(self, scenarios, n_trucks=100, speed=48, seed=None):
         self.rng = np.random.default_rng(None)
 
-        self.scenario = scenario
+        self.scenarios = scenarios
         self.n_trucks = n_trucks
         self.speed = speed
 
@@ -37,11 +38,11 @@ class Minimal():
         self.bridges_whole = {}
         self.bridges_state = {}
 
-        self.scenario_chances = scenarios_df.loc[[self.scenario]].to_dict(orient="records")[0]
+    def break_bridges(self, scenario):
+        scenario_chances = scenarios_df.loc[[scenario]].to_dict(orient="records")[0]
 
-    def break_bridges(self):
         for bridge, condition in conditions.items():
-            broken_chance = self.scenario_chances[f"Cat{condition}"]
+            broken_chance = scenario_chances[f"Cat{condition}"]
             self.bridges_state[bridge] = broken_chance > random.uniform(0, 1)
 
         self.bridges_broken = [k for (k, v) in self.bridges_state.items() if v]
@@ -61,5 +62,27 @@ class Minimal():
             else:
                 print(f"Unknown input: {delay_dict[length_classes[bridge]][0]}")
 
-        return (drive_time, delay)
+        return delay
 
+    def run_sim(self, iterations=1):
+        results = {}
+        for scenario in self.scenarios:
+            results[scenario] = {}
+            for i in range(iterations):
+                self.break_bridges(scenario)
+                results[scenario][i] = []
+                for _ in range(self.n_trucks):
+                    results[scenario][i].append(self.run_truck())
+        return results
+
+
+def run_experiment(scenarios, n_trucks=100, iterations=25, filename=''):
+    model = Minimal(scenarios, n_trucks)
+    results = model.run_sim(iterations)
+    if filename != '':
+        print(f'Saving file data/{filename}.pickle')
+        import pickle
+        file = open(f'data/{filename}.pickle', 'wb')
+        pickle.dump(results, file)
+        file.close()
+    return results
