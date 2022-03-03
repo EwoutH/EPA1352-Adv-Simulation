@@ -224,6 +224,7 @@ class Vehicle(Agent):
         self.waiting_time = 0
         self.waited_at = None
         self.removed_at_step = None
+        self.drive_time = Vehicle.step_time
 
     def __str__(self):
         return "Vehicle" + str(self.unique_id) + \
@@ -241,27 +242,22 @@ class Vehicle(Agent):
         """
         Vehicle waits or drives at each step
         """
+        # First drive, so you don't drive after you have waited
         if self.state == Vehicle.State.WAIT:
-            self.waiting_time = max(self.waiting_time - 1, 0) # TODO: Vehicle.step_time
-            if self.waiting_time == 0:
+            self.waiting_time = self.waiting_time - self.step_time
+            if self.waiting_time <= 0:
                 self.waited_at = self.location
                 self.state = Vehicle.State.DRIVE
-
-        # TODO: Model is wrong, drive starts in same minute that wait ends
+                self.drive_time = abs(self.waiting_time)
+                self.waiting_time = 0
 
         if self.state == Vehicle.State.DRIVE:
             self.drive()
 
-        """
-        To print the vehicle trajectory at each step
-        """
-        # print(self)
-
     def drive(self):
-
         # the distance that vehicle drives in a tick
         # speed is global now: can change to instance object when individual speed is needed
-        distance = Vehicle.speed * Vehicle.step_time
+        distance = Vehicle.speed * self.drive_time
         distance_rest = self.location_offset + distance - self.location.length
 
         if distance_rest > 0:
@@ -272,7 +268,7 @@ class Vehicle(Agent):
             # remain on the same object
             self.location_offset += distance
 
-    def drive_to_next(self, distance):
+    def drive_to_next(self, distance=None):
         """
         vehicle shall move to the next object with the given distance
         """
