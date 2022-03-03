@@ -42,7 +42,7 @@ class Minimal():
         scenario_chances = scenarios_df.loc[[scenario]].to_dict(orient="records")[0]
 
         for bridge, condition in conditions.items():
-            broken_chance = scenario_chances[f"Cat{condition}"]
+            broken_chance = scenario_chances[f"Cat{condition}"] / 100
             self.bridges_state[bridge] = broken_chance > random.uniform(0, 1)
 
         self.bridges_broken = [k for (k, v) in self.bridges_state.items() if v]
