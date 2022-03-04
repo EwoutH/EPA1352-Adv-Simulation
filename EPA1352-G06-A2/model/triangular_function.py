@@ -3,6 +3,7 @@ from numpy.random import default_rng
 
 rng = default_rng()
 
+# Define a dict with the delay function and parameters for each size class
 delay_dict = {
     "XL": ("triangular", (60, 120, 240)),
     "L": ("uniform", (45, 90)),
@@ -12,6 +13,7 @@ delay_dict = {
 
 
 def get_delay_value(bridge_class):
+    # Function that returns a single delay time based on the bridge size class
     if delay_dict[bridge_class][0] == "triangular":
         return rng.triangular(*delay_dict[bridge_class][1])
 
