@@ -3,8 +3,8 @@ import random
 import numpy as np
 
 # Read in the road and scenario table
-df = pd.read_csv('data/simulation_file_N1.csv')
-scenarios_df = pd.read_csv('data/scenario_delays.csv', sep=';', index_col='Scenario')
+df = pd.read_csv('../data/simulation_file_N1.csv')
+scenarios_df = pd.read_csv('../data/scenario_delays.csv', sep=';', index_col='Scenario')
 
 road_df = df.loc[df["model_type"] == "link"]
 bridge_df = df.loc[df["model_type"] != "link"]
