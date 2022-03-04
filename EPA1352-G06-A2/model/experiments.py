@@ -20,7 +20,7 @@ for scenario in range(0,9):
     for i in range(run_length):
         sim_model.step()
     durations[scenario] = sim_model.durations
-    print(f"Done with scenario {scenario}. Average delay: {statistics.mean(durations[scenario])}")
+    print(f"Done with scenario {scenario}. Average delay: {statistics.mean(durations[scenario])-571:.3f}, average duration: {statistics.mean(durations[scenario]):.3f}")
 
 
 # open a file, where you want to store the data
