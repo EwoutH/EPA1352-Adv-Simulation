@@ -1,7 +1,6 @@
 # Assignment 2 EPA1352 readme
 
-
-Created by: EPA1352 Group 6 
+EPA1352 Group 6 
 
 | Name    | Student Number |
 |:-------:|:--------:|
@@ -11,10 +10,9 @@ Created by: EPA1352 Group 6
 | Christiaan Ouwehand | 4293053 |
 | Timo Frazer | 4579992 |
 
-
 ## Introduction
 
-The goal of this lab exercises is to analyse the transportation delays and its economic impact due to breakdown of bridges on the N1 from Chittagong to Dhaka in Bangladesh. For that, a Mesa module 0.9.0 with Python 3.10 will be used to generate trucks driving every 5 minutes from the beginning to the end of the road crossing bridges that could break under different probabilistic scenarios. To compare these results, a minimal discreet simulation model will be made.
+The goal of this lab exercises is to analyse the transportation delays and its economic impact due to breakdown of bridges on the N1 from Chittagong to Dhaka in Bangladesh. For that, a Mesa module 0.9.0 with Python 3.10 will be used to generate trucks driving every 5 minutes from the beginning to the end of the road crossing bridges that could break under different probabilistic scenarios. To compare these results, a minimal stochastic model will be made.
 
 ## Structure
 The directory structure is listed below:
@@ -28,7 +26,7 @@ The directory structure is listed below:
 ├───report          Contains the report written
 ├───results         Contains the results with average delay times and validation data
 ```
-As seen above, two models have been developed for this assignment, a Mesa model based on the given model and a model developed from scratch called the minimal model. The report discussed the differences between the two.
+As seen above, two models have been developed for this assignment, a Mesa model based on the given model and a model developed from scratch called the minimal model. The [report](report/Report-EPA1352-G06-A2.pdf) discusses the differences between the two.
 
 ## How to Use the MESA model 
 
