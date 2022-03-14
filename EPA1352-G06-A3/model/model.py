@@ -1,9 +1,14 @@
 from mesa import Model
+
 from mesa.time import BaseScheduler
 from mesa.space import ContinuousSpace
-from components import Source, Sink, SourceSink, Bridge, Link, Intersection
+from components import SourceSink, Bridge, Link, Intersection
 import pandas as pd
 from collections import defaultdict
+import networkx as nx
+
+
+
 
 
 # ---------------------------------------------------------------
@@ -54,7 +59,6 @@ class BangladeshModel(Model):
     """
 
     step_time = 1
-
     file_name = '../data/demo-4.csv'
 
     def __init__(self, seed=None, x_max=500, y_max=500, x_min=0, y_min=0):
@@ -63,8 +67,10 @@ class BangladeshModel(Model):
         self.running = True
         self.path_ids_dict = defaultdict(lambda: pd.Series())
         self.space = None
-        self.sources = []
-        self.sinks = []
+        self.sourcesinks = []
+
+        self.network_graph = self.create_network(pd.read_csv(self.file_name))
+
 
         self.generate_model()
 
@@ -132,16 +138,16 @@ class BangladeshModel(Model):
                 else:
                     name = name.strip()
 
-                if model_type == 'source':
-                    agent = Source(row['id'], self, row['length'], name, row['road'])
-                    self.sources.append(agent.unique_id)
-                elif model_type == 'sink':
-                    agent = Sink(row['id'], self, row['length'], name, row['road'])
-                    self.sinks.append(agent.unique_id)
-                elif model_type == 'sourcesink':
+                # if model_type == 'source':
+                #     agent = Source(row['id'], self, row['length'], name, row['road'])
+                #     self.sources.append(agent.unique_id)
+                # elif model_type == 'sink':
+                #     agent = Sink(row['id'], self, row['length'], name, row['road'])
+                #     self.sinks.append(agent.unique_id)
+                if model_type == 'sourcesink':
                     agent = SourceSink(row['id'], self, row['length'], name, row['road'])
-                    self.sources.append(agent.unique_id)
-                    self.sinks.append(agent.unique_id)
+                    self.sourcesinks.append(agent.unique_id)
+
                 elif model_type == 'bridge':
                     agent = Bridge(row['id'], self, row['length'], name, row['road'], row['condition'])
                 elif model_type == 'link':
@@ -157,26 +163,54 @@ class BangladeshModel(Model):
                     self.space.place_agent(agent, (x, y))
                     agent.pos = (x, y)
 
-    def get_random_route(self, source):
+    def get_random_route(self, sourcesink):
         """
         pick up a random route given an origin
         """
         while True:
-            # different source and sink
-            sink = self.random.choice(self.sinks)
-            if sink is not source:
+            # different end and beginning
+            sourcesinkend = self.random.choice(self.sourcesinks)
+
+            if sourcesink is not sourcesinkend :
                 break
-        return self.path_ids_dict[source, sink]
+
+        self.create_path(sourcesink,sourcesinkend)
+
+        return self.path_ids_dict[sourcesink, sourcesinkend]
 
     # TODO
-    def get_route(self, source):
-        return self.get_straight_route(source)
+    def get_route(self, sourcesink,sourcesinkend):
+        routedict = {}
+        if [sourcesink, sourcesinkend] in routedict.keys():
+            routelength = routedict[sourcesink, sourcesinkend]
+        else:
+            routelength = nx.shortest_path(file_name, source=sourcesink, target=sourcesinkend, weight=None, method='dijkstra')
+            routedict.append[(sourcesink,sourcesinkend),routelength]
+        return self.get_route(sourcesink, sourcesinkend, routelength)
 
-    def get_straight_route(self, source):
+    def create_path(self,sourcesink,sourcesinkend):
+        path = nx.shortest_path(self.network_graph,sourcesink,sourcesinkend)
+
+        self.path_ids_dict[sourcesink,sourcesinkend] = path
+
+    def get_straight_route(self, sourcesink):
         """
         pick up a straight route given an origin
         """
-        return self.path_ids_dict[source, None]
+        return self.path_ids_dict[sourcesink, None]
+
+    def create_network(self, df):
+        graph = nx.Graph()
+
+        for row in df.index:
+            graph.add_node(df['id'][row])
+
+        for row_index in range(0, len(df)):
+            id1 = df.loc[row_index]['id']
+            id2 = df.loc[row_index]['id'] + 1
+            graph.add_edge(id1, id2, length=df.iloc[row_index]['length'])
+
+        return graph
 
     def step(self):
         """
