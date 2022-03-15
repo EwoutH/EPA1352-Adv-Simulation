@@ -1,14 +1,10 @@
 from mesa import Model
-
 from mesa.time import BaseScheduler
 from mesa.space import ContinuousSpace
-from components import Source, Sink, SourceSink, Bridge, Link, Intersection
+from mesa.datacollection import DataCollector
+from components import Source, Sink, SourceSink, Bridge, Link
 import pandas as pd
 from collections import defaultdict
-import networkx as nx
-
-
-
 
 
 # ---------------------------------------------------------------
@@ -47,7 +43,7 @@ class BangladeshModel(Model):
         Key: (origin, destination)
         Value: the shortest path (Infra component IDs) from an origin to a destination
 
-        Only straight paths in the Demo are added into the dict;
+        Since there is only one road in the Demo, the paths are added with the road info;
         when there is a more complex network layout, the paths need to be managed differently
 
     sources: list
@@ -59,19 +55,21 @@ class BangladeshModel(Model):
     """
 
     step_time = 1
-    file_name = '../data/demo-4.csv'
 
-    def __init__(self, seed=None, x_max=500, y_max=500, x_min=0, y_min=0):
+    def __init__(self, scenario, data_path='../data/simulation_file_N1.csv',
+                 seed=None, x_max=500, y_max=500, x_min=0, y_min=0):
 
+        self.scenario = scenario
+        self.data_path = data_path
+
+        self.scenario_chances = {}
         self.schedule = BaseScheduler(self)
         self.running = True
         self.path_ids_dict = defaultdict(lambda: pd.Series())
         self.space = None
         self.sources = []
         self.sinks = []
-        self.seed = seed
-        self.network_graph = self.create_network(pd.read_csv(self.file_name))
-        self.dic_arrivedcars = {'vehicleid': [], 'traveltime': []}
+        self.durations = []
 
         self.generate_model()
 
@@ -82,35 +80,43 @@ class BangladeshModel(Model):
         Warning: the labels are the same as the csv column labels
         """
 
-        df = pd.read_csv(self.file_name)
+        df = pd.read_csv(self.data_path)
+
+        # Read in the scenario table
+        scenarios_df = pd.read_csv('../data/scenario_delays.csv', sep=';', index_col='Scenario')
+        scenarios_df = scenarios_df / 100  # percent to fraction
+
+        # Create scenario dictionary with break-down chance for each bridge type
+        self.scenario_chances = scenarios_df.loc[[self.scenario]].to_dict(orient="records")[0]
 
         # a list of names of roads to be generated
-        # TODO You can also read in the road column to generate this list automatically
-        roads = ['N1', 'N2']
+        roads = ['N1']
+
+        # roads = [
+        #     'N1', 'N2', 'N3', 'N4',
+        #     'N5', 'N6', 'N7', 'N8'
+        # ]
 
         df_objects_all = []
         for road in roads:
-            # Select all the objects on a particular road in the original order as in the cvs
-            df_objects_on_road = df[df['road'] == road]
+
+            # be careful with the sorting
+            # better remove sorting by id
+            # Select all the objects on a particular road
+            df_objects_on_road = df[df['road'] == road].sort_values(by=['id'])
 
             if not df_objects_on_road.empty:
                 df_objects_all.append(df_objects_on_road)
 
-                """
-                Set the path 
-                1. get the serie of object IDs on a given road in the cvs in the original order
-                2. add the (straight) path to the path_ids_dict
-                3. put the path in reversed order and reindex
-                4. add the path to the path_ids_dict so that the vehicles can drive backwards too
-                """
+                # the object IDs on a given road
                 path_ids = df_objects_on_road['id']
-                path_ids.reset_index(inplace=True, drop=True)
+                # add the path to the path_ids_dict
                 self.path_ids_dict[path_ids[0], path_ids.iloc[-1]] = path_ids
-                self.path_ids_dict[path_ids[0], None] = path_ids
+                # put the path in reversed order and reindex
                 path_ids = path_ids[::-1]
                 path_ids.reset_index(inplace=True, drop=True)
+                # add the path to the path_ids_dict so that the vehicles can drive backwards too
                 self.path_ids_dict[path_ids[0], path_ids.iloc[-1]] = path_ids
-                self.path_ids_dict[path_ids[0], None] = path_ids
 
         # put back to df with selected roads so that min and max and be easily calculated
         df = pd.concat(df_objects_all)
@@ -127,35 +133,26 @@ class BangladeshModel(Model):
         self.space = ContinuousSpace(x_max, y_max, True, x_min, y_min)
 
         for df in df_objects_all:
-            for _, row in df.iterrows():  # index, row in ...
+            for _, row in df.iterrows():    # index, row in ...
 
                 # create agents according to model_type
-                model_type = row['model_type'].strip()
+                model_type = row['model_type']
                 agent = None
 
-                name = row['name']
-                if pd.isna(name):
-                    name = ""
-                else:
-                    name = name.strip()
-
                 if model_type == 'source':
-                    agent = Source(row['id'], self, row['length'], name, row['road'])
+                    agent = Source(row['id'], self, row['length'], row['name'], row['road'])
                     self.sources.append(agent.unique_id)
                 elif model_type == 'sink':
-                    agent = Sink(row['id'], self, row['length'], name, row['road'])
+                    agent = Sink(row['id'], self, row['length'], row['name'], row['road'])
                     self.sinks.append(agent.unique_id)
                 elif model_type == 'sourcesink':
-                    agent = SourceSink(row['id'], self, row['length'], name, row['road'])
+                    agent = SourceSink(row['id'], self, row['length'], row['name'], row['road'])
                     self.sources.append(agent.unique_id)
                     self.sinks.append(agent.unique_id)
                 elif model_type == 'bridge':
-                    agent = Bridge(row['id'], self, row['length'], name, row['road'], row['condition'])
+                    agent = Bridge(row['id'], self, row['length'], row['name'], row['road'], row['condition'], row['length_class'])
                 elif model_type == 'link':
-                    agent = Link(row['id'], self, row['length'], name, row['road'])
-                elif model_type == 'intersection':
-                    if not row['id'] in self.schedule._agents:
-                        agent = Intersection(row['id'], self, row['length'], name, row['road'])
+                    agent = Link(row['id'], self, row['length'], row['name'], row['road'])
 
                 if agent:
                     self.schedule.add(agent)
@@ -173,57 +170,13 @@ class BangladeshModel(Model):
             sink = self.random.choice(self.sinks)
             if sink is not source:
                 break
-
-        self.create_path(source,sink)
-
         return self.path_ids_dict[source, sink]
-
-    # TODO
-    def get_route(self, source):
-        # routedict = {}
-        # if [sourcesink, sourcesinkend] in routedict.keys():
-        #     routelength = routedict[sourcesink, sourcesinkend]
-        # else:
-        #     routelength = nx.shortest_path(file_name, source=sourcesink, target=sourcesinkend, weight=None, method='dijkstra')
-        #     routedict.append[(sourcesink,sourcesinkend),routelength]
-        # return self.get_route(sourcesink, sourcesinkend, routelength)
-
-        while True:
-            sink = self.random.choice(self.sinks)
-            if sink is not source:
-                break
-
-            self.create_path(source, sink)
-            return self.path_ids_dict[source,sink]
-
-    def create_path(self,source,sink):
-        path = nx.shortest_path(self.network_graph,source,sink)
-
-        self.path_ids_dict[source,sink] = path
-
-    def get_straight_route(self, source):
-        """
-        pick up a straight route given an origin
-        """
-        return self.path_ids_dict[source, None]
-
-    def create_network(self, df):
-        graph = nx.Graph()
-
-        for row in df.index:
-            graph.add_node(df['id'][row])
-
-        for row_index in range(0, len(df)):
-            id1 = df.loc[row_index]['id']
-            id2 = df.loc[row_index]['id'] + 1
-            graph.add_edge(id1, id2, length=df.iloc[row_index]['length'])
-
-        return graph
 
     def step(self):
         """
         Advance the simulation by one step.
         """
         self.schedule.step()
+
 
 # EOF -----------------------------------------------------------

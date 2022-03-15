@@ -1,7 +1,10 @@
+import random
+
 from mesa import Agent
 from enum import Enum
 from triangular_function import get_delay_value
-import random
+
+
 # ---------------------------------------------------------------
 class Infra(Agent):
     """
@@ -54,8 +57,8 @@ class Bridge(Infra):
                  name='Unknown', road_name='Unknown', condition='Unknown', length_class='Unknown'):
         super().__init__(unique_id, model, length, name, road_name)
 
-        self.delaytime = 0
         self.condition = condition
+
         # Calculate broken state from scenario and bridge condition
         broken_chance = model.scenario_chances[f"Cat{self.condition}"]
         self.broken = broken_chance > random.uniform(0, 1)
@@ -64,26 +67,15 @@ class Bridge(Infra):
 
     def get_delay_time(self):
         if self.broken:
-            self.delaytime =  get_delay_value(self.bridge_class)
+            return get_delay_value(self.bridge_class)
         else:
-            self.delaytime = 0
+            return 0
 
-    #     # TODO
-    #     self.delay_time = self.random.randrange(0, 10)
-    #     # print(self.delay_time)
-    #
-    # # TODO
-    # def get_delay_time(self):
-    #     return self.delay_time
+
 
 
 # ---------------------------------------------------------------
 class Link(Infra):
-    pass
-
-
-# ---------------------------------------------------------------
-class Intersection(Infra):
     pass
 
 
@@ -104,11 +96,11 @@ class Sink(Infra):
     def remove(self, vehicle):
         self.model.schedule.remove(vehicle)
         self.vehicle_removed_toggle = not self.vehicle_removed_toggle
-        print(str(self) + ' REMOVE ' + str(vehicle))
+        # print(str(self) + ' REMOVE ' + str(vehicle))
 
-#
-# # ---------------------------------------------------------------
-#
+
+# ---------------------------------------------------------------
+
 class Source(Infra):
     """
     Source generates vehicles
@@ -130,7 +122,7 @@ class Source(Infra):
     """
 
     truck_counter = 0
-    generation_frequency = 5
+    generation_frequency = 5  # TODO: Make model parameter
     vehicle_generated_flag = False
 
     def step(self):
@@ -151,17 +143,16 @@ class Source(Infra):
                 Source.truck_counter += 1
                 self.vehicle_count += 1
                 self.vehicle_generated_flag = True
-                print(str(self) + " GENERATE " + str(agent))
+                # print(str(self) + " GENERATE " + str(agent))
         except Exception as e:
             print("Oops!", e.__class__, "occurred.")
 
 
 # ---------------------------------------------------------------
-class SourceSink(Infra):
+class SourceSink(Source, Sink):
     """
     Generates and removes trucks
     """
-
     pass
 
 
@@ -210,7 +201,7 @@ class Vehicle(Agent):
     """
 
     # 48 km/h translated into meter per min
-    speed = 48 * 1000 / 60
+    speed = 48 * 1000 / 60  # TODO: consider making model or agent input
     # One tick represents 1 minute
     step_time = 1
 
@@ -234,8 +225,6 @@ class Vehicle(Agent):
         self.waited_at = None
         self.removed_at_step = None
 
-        self.waiting_timetotal = 0
-
     def __str__(self):
         return "Vehicle" + str(self.unique_id) + \
                " +" + str(self.generated_at_step) + " -" + str(self.removed_at_step) + \
@@ -246,17 +235,19 @@ class Vehicle(Agent):
         """
         Set the origin destination path of the vehicle
         """
-        self.path_ids = self.model.get_route(self.generated_by.unique_id)
+        self.path_ids = self.model.get_random_route(self.generated_by.unique_id)
 
     def step(self):
         """
         Vehicle waits or drives at each step
         """
         if self.state == Vehicle.State.WAIT:
-            self.waiting_time = max(self.waiting_time - 1, 0)
+            self.waiting_time = max(self.waiting_time - 1, 0) # TODO: Vehicle.step_time
             if self.waiting_time == 0:
                 self.waited_at = self.location
                 self.state = Vehicle.State.DRIVE
+
+        # TODO: Model is wrong, drive starts in same minute that wait ends
 
         if self.state == Vehicle.State.DRIVE:
             self.drive()
@@ -264,7 +255,7 @@ class Vehicle(Agent):
         """
         To print the vehicle trajectory at each step
         """
-        print(self)
+        # print(self)
 
     def drive(self):
 
@@ -276,6 +267,7 @@ class Vehicle(Agent):
         if distance_rest > 0:
             # go to the next object
             self.drive_to_next(distance_rest)
+            # TODO: Maybe transfer time left to drive on next object
         else:
             # remain on the same object
             self.location_offset += distance
@@ -289,17 +281,12 @@ class Vehicle(Agent):
         next_id = self.path_ids[self.location_index]
         next_infra = self.model.schedule._agents[next_id]  # Access to protected member _agents
 
-        if isinstance(next_infra, Infra):
+        if isinstance(next_infra, Sink):
             # arrive at the sink
             self.arrive_at_next(next_infra, 0)
             self.removed_at_step = self.model.schedule.steps
+            self.model.durations.append(self.removed_at_step - self.generated_at_step)
             self.location.remove(self)
-
-            # Added
-            # travel time calculation and add to a dict
-            traveltime = self.removed_at_step - self.generated_at_step
-            self.model.arrived_car_dict['vehicleid'].append(self.unique_id)
-            self.model.arrived_car_dict['traveltime'].append(traveltime)
             return
         elif isinstance(next_infra, Bridge):
             self.waiting_time = next_infra.get_delay_time()
@@ -307,7 +294,6 @@ class Vehicle(Agent):
                 # arrive at the bridge and wait
                 self.arrive_at_next(next_infra, 0)
                 self.state = Vehicle.State.WAIT
-                self.waiting_timetotal += self.waiting_time
                 return
             # else, continue driving
 
@@ -328,3 +314,5 @@ class Vehicle(Agent):
         self.location.vehicle_count += 1
 
 # EOF -----------------------------------------------------------
+
+
