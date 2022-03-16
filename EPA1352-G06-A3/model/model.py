@@ -8,9 +8,6 @@ from collections import defaultdict
 import networkx as nx
 
 
-
-
-
 # ---------------------------------------------------------------
 def set_lat_lon_bound(lat_min, lat_max, lon_min, lon_max, edge_ratio=0.02):
     """
@@ -174,7 +171,7 @@ class BangladeshModel(Model):
             if sink is not source:
                 break
 
-        self.create_path(source,sink)
+        self.create_path(source, sink)
 
         return self.path_ids_dict[source, sink]
 
@@ -194,12 +191,12 @@ class BangladeshModel(Model):
                 break
 
             self.create_path(source, sink)
-            return self.path_ids_dict[source,sink]
+            return self.path_ids_dict[source, sink]
 
-    def create_path(self,source,sink):
-        path = nx.shortest_path(self.network_graph,source,sink)
+    def create_path(self, source, sink):
+        path = nx.shortest_path(self.network_graph, source, sink)
 
-        self.path_ids_dict[source,sink] = path
+        self.path_ids_dict[source, sink] = path
 
     def get_straight_route(self, source):
         """

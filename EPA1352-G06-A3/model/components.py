@@ -157,7 +157,7 @@ class Source(Infra):
 
 
 # ---------------------------------------------------------------
-class SourceSink(Infra):
+class SourceSink(Source, Sink):
     """
     Generates and removes trucks
     """
@@ -295,12 +295,12 @@ class Vehicle(Agent):
             self.removed_at_step = self.model.schedule.steps
             self.location.remove(self)
 
-            # Added
             # travel time calculation and add to a dict
             traveltime = self.removed_at_step - self.generated_at_step
             self.model.arrived_car_dict['vehicleid'].append(self.unique_id)
             self.model.arrived_car_dict['traveltime'].append(traveltime)
             return
+
         elif isinstance(next_infra, Bridge):
             self.waiting_time = next_infra.get_delay_time()
             if self.waiting_time > 0:
