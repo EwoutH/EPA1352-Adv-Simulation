@@ -57,9 +57,9 @@ class BangladeshModel(Model):
     step_time = 1
     file_name = '../data/A3_data_clean.csv'
 
-    def __init__(self, scenario, seed=None, x_max=500, y_max=500, x_min=0, y_min=0):
+    def __init__(self, probabilities=None,  seed=None, x_max=500, y_max=500, x_min=0, y_min=0):
 
-        self.scenario = scenario
+
         self.schedule = BaseScheduler(self)
         self.running = True
         self.path_ids_dict = defaultdict(lambda: pd.Series())
@@ -72,6 +72,7 @@ class BangladeshModel(Model):
         self.scenario_chances ={}
         self.generate_model()
 
+        self.probabilities = probabilities
     def generate_model(self):
         """
         generate the simulation model according to the csv file component information
@@ -81,12 +82,12 @@ class BangladeshModel(Model):
 
         df = pd.read_csv(self.file_name)
 
-        # Read in the scenario table
-        scenarios_df = pd.read_csv('../data/scenario_delays.csv', sep=';', index_col='Scenario')
-        scenarios_df = scenarios_df / 100  # percent to fraction
-
-        # Create scenario dictionary with break-down chance for each bridge type
-        self.scenario_chances = scenarios_df.loc[[self.scenario]].to_dict(orient="records")[0]
+        # # Read in the scenario table
+        # scenarios_df = pd.read_csv('../data/scenario_delays.csv', sep=';', index_col='Scenario')
+        # scenarios_df = scenarios_df / 100  # percent to fraction
+        #
+        # # Create scenario dictionary with break-down chance for each bridge type
+        # self.scenario_chances = scenarios_df.loc[[self.scenario]].to_dict(orient="records")[0]
 
         # a list of names of roads to be generated
         # TODO You can also read in the road column to generate this list automatically

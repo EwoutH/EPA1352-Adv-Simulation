@@ -51,17 +51,43 @@ class Bridge(Infra):
     """
 
     def __init__(self, unique_id, model, length=0,
-                 name='Unknown', road_name='Unknown', condition='Unknown', length_class='Unknown'):
+                 name='Unknown', road_name='Unknown', condition='Unknown', probabilities=None):
         super().__init__(unique_id, model, length, name, road_name)
 
         self.delaytime = 0
         self.condition = condition
-        # Calculate broken state from scenario and bridge condition
-        broken_chance = model.scenario_chances[f"Cat{self.condition}"]
-        self.broken = broken_chance > random.uniform(0, 1)
+        self.broken = False
+        self.probabilities = probabilities
+        # # Calculate broken state from scenario and bridge condition
+        # broken_chance = model.scenario_chances[f"Cat{self.condition}"]
+        # self.broken = broken_chance > random.uniform(0, 1)
+        #
+        # self.bridge_class = length_class
+        if self.probabilities is not None:
+            if self.condition == 'A':
+                if self.random.random() < self.probabilities['A'] :
+                    self.broken = True
+            elif self.condition == 'B':
+                if self.random.random() < self.probabilities['B'] :
+                    self.broken = True
+            elif self.condition == 'C':
+                if self.random.random() < self.probabilities['C']:
+                    self.broken = True
+            else:
+                if self.random.random() < self.probabilities['D']:
+                    self.broken = True
 
-        self.bridge_class = length_class
-
+        if self.broken:
+            if self.length > 200:
+                self.delay_time = self.random.triangular(low=60, mode=120, high=240)
+            elif 50 < self.length <= 200:
+                self.delay_time = self.random.uniform(45, 90)
+            elif 10 < self.length < 50:
+                self.delay_time = self.random.uniform(15, 60)
+            else:
+                self.delay_time = self.random.uniform(10, 20)
+        else:
+            self.delay_time = 0
     def get_delay_time(self):
         return self.delaytime
         # if self.broken:
