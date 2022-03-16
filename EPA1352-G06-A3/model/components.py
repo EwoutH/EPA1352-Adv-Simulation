@@ -63,10 +63,11 @@ class Bridge(Infra):
         self.bridge_class = length_class
 
     def get_delay_time(self):
-        if self.broken:
-            self.delaytime =  get_delay_value(self.bridge_class)
-        else:
-            self.delaytime = 0
+        return self.delaytime
+        # if self.broken:
+        #     self.delaytime =  get_delay_value(self.bridge_class)
+        # else:
+        #     self.delaytime = 0
 
     #     # TODO
     #     self.delay_time = self.random.randrange(0, 10)
@@ -234,8 +235,6 @@ class Vehicle(Agent):
         self.waited_at = None
         self.removed_at_step = None
 
-        self.waiting_timetotal = 0
-
     def __str__(self):
         return "Vehicle" + str(self.unique_id) + \
                " +" + str(self.generated_at_step) + " -" + str(self.removed_at_step) + \
@@ -289,7 +288,7 @@ class Vehicle(Agent):
         next_id = self.path_ids[self.location_index]
         next_infra = self.model.schedule._agents[next_id]  # Access to protected member _agents
 
-        if isinstance(next_infra, Infra):
+        if isinstance(next_infra, Sink):
             # arrive at the sink
             self.arrive_at_next(next_infra, 0)
             self.removed_at_step = self.model.schedule.steps
@@ -297,8 +296,8 @@ class Vehicle(Agent):
 
             # travel time calculation and add to a dict
             traveltime = self.removed_at_step - self.generated_at_step
-            self.model.arrived_car_dict['vehicleid'].append(self.unique_id)
-            self.model.arrived_car_dict['traveltime'].append(traveltime)
+            self.model.dic_arrivedcars['vehicleid'].append(self.unique_id)
+            self.model.dic_arrivedcars['traveltime'].append(traveltime)
             return
 
         elif isinstance(next_infra, Bridge):
@@ -307,7 +306,7 @@ class Vehicle(Agent):
                 # arrive at the bridge and wait
                 self.arrive_at_next(next_infra, 0)
                 self.state = Vehicle.State.WAIT
-                self.waiting_timetotal += self.waiting_time
+                # self.waiting_timetotal += self.waiting_time
                 return
             # else, continue driving
 

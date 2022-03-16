@@ -1,5 +1,4 @@
 from mesa import Model
-
 from mesa.time import BaseScheduler
 from mesa.space import ContinuousSpace
 from components import Source, Sink, SourceSink, Bridge, Link, Intersection
@@ -56,7 +55,7 @@ class BangladeshModel(Model):
     """
 
     step_time = 1
-    file_name = '../data/demo-4.csv'
+    file_name = '../data/A3_data_clean.csv'
 
     def __init__(self, scenario, seed=None, x_max=500, y_max=500, x_min=0, y_min=0):
 
@@ -91,7 +90,10 @@ class BangladeshModel(Model):
 
         # a list of names of roads to be generated
         # TODO You can also read in the road column to generate this list automatically
-        roads = ['N1', 'N2']
+        roads = ['N1', 'N2', 'N101', 'N102', 'N103', 'N104', 'N105', 'N106', 'N107', 'N108',
+                 'N109', 'N110', 'N111', 'N112', 'N119', 'N120', 'N123', 'N128',
+                 'N129', 'N203', 'N204', 'N205', 'N206', 'N207', 'N208', 'N209',
+                 'N210']
 
         df_objects_all = []
         for road in roads:
@@ -108,14 +110,14 @@ class BangladeshModel(Model):
                 3. put the path in reversed order and reindex
                 4. add the path to the path_ids_dict so that the vehicles can drive backwards too
                 """
-                path_ids = df_objects_on_road['id']
-                path_ids.reset_index(inplace=True, drop=True)
-                self.path_ids_dict[path_ids[0], path_ids.iloc[-1]] = path_ids
-                self.path_ids_dict[path_ids[0], None] = path_ids
-                path_ids = path_ids[::-1]
-                path_ids.reset_index(inplace=True, drop=True)
-                self.path_ids_dict[path_ids[0], path_ids.iloc[-1]] = path_ids
-                self.path_ids_dict[path_ids[0], None] = path_ids
+                # path_ids = df_objects_on_road['id']
+                # path_ids.reset_index(inplace=True, drop=True)
+                # self.path_ids_dict[path_ids[0], path_ids.iloc[-1]] = path_ids
+                # self.path_ids_dict[path_ids[0], None] = path_ids
+                # path_ids = path_ids[::-1]
+                # path_ids.reset_index(inplace=True, drop=True)
+                # self.path_ids_dict[path_ids[0], path_ids.iloc[-1]] = path_ids
+                # self.path_ids_dict[path_ids[0], None] = path_ids
 
         # put back to df with selected roads so that min and max and be easily calculated
         df = pd.concat(df_objects_all)
@@ -179,29 +181,21 @@ class BangladeshModel(Model):
             if sink is not source:
                 break
 
-        self.create_path(source, sink)
+        self.add_path(source, sink)
 
         return self.path_ids_dict[source, sink]
 
     # TODO
     def get_route(self, source):
-        # routedict = {}
-        # if [sourcesink, sourcesinkend] in routedict.keys():
-        #     routelength = routedict[sourcesink, sourcesinkend]
-        # else:
-        #     routelength = nx.shortest_path(file_name, source=sourcesink, target=sourcesinkend, weight=None, method='dijkstra')
-        #     routedict.append[(sourcesink,sourcesinkend),routelength]
-        # return self.get_route(sourcesink, sourcesinkend, routelength)
-
         while True:
             sink = self.random.choice(self.sinks)
             if sink is not source:
                 break
 
-            self.create_path(source, sink)
-            return self.path_ids_dict[source, sink]
+        self.add_path(source, sink)
+        return self.path_ids_dict[source, sink]
 
-    def create_path(self, source, sink):
+    def add_path(self, source, sink):
         path = nx.shortest_path(self.network_graph, source, sink)
 
         self.path_ids_dict[source, sink] = path
