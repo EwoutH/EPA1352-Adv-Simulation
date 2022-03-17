@@ -51,13 +51,13 @@ class Bridge(Infra):
     """
 
     def __init__(self, unique_id, model, length=0,
-                 name='Unknown', road_name='Unknown', condition='Unknown', probabilities=None):
+                 name='Unknown', road_name='Unknown', condition='Unknown',  probabilities=None):
         super().__init__(unique_id, model, length, name, road_name)
 
-        self.delaytime = 0
         self.condition = condition
-        self.broken = False
         self.probabilities = probabilities
+        self.broken = False
+        self.delay_time = 0
         # # Calculate broken state from scenario and bridge condition
         # broken_chance = model.scenario_chances[f"Cat{self.condition}"]
         # self.broken = broken_chance > random.uniform(0, 1)
@@ -89,7 +89,7 @@ class Bridge(Infra):
         else:
             self.delay_time = 0
     def get_delay_time(self):
-        return self.delaytime
+        return self.delay_time
         # if self.broken:
         #     self.delaytime =  get_delay_value(self.bridge_class)
         # else:
@@ -261,6 +261,8 @@ class Vehicle(Agent):
         self.waited_at = None
         self.removed_at_step = None
 
+        self.total_waiting_time = 0
+
     def __str__(self):
         return "Vehicle" + str(self.unique_id) + \
                " +" + str(self.generated_at_step) + " -" + str(self.removed_at_step) + \
@@ -321,9 +323,11 @@ class Vehicle(Agent):
             self.location.remove(self)
 
             # travel time calculation and add to a dict
-            traveltime = self.removed_at_step - self.generated_at_step
-            self.model.dic_arrivedcars['vehicleid'].append(self.unique_id)
-            self.model.dic_arrivedcars['traveltime'].append(traveltime)
+            travel_time = self.removed_at_step - self.generated_at_step
+            # add results to model dictionary
+            self.model.arrived_car_dict['VehicleID'].append(self.unique_id)
+            # self.model.arrived_car_dict['VehicleID'].append(self.model.seed)
+            self.model.arrived_car_dict['Travel_Time'].append(travel_time)
             return
 
         elif isinstance(next_infra, Bridge):
@@ -332,16 +336,20 @@ class Vehicle(Agent):
                 # arrive at the bridge and wait
                 self.arrive_at_next(next_infra, 0)
                 self.state = Vehicle.State.WAIT
-                # self.waiting_timetotal += self.waiting_time
+                self.total_waiting_time += self.waiting_time
                 return
             # else, continue driving
 
-        if next_infra.length > distance:
-            # stay on this object:
-            self.arrive_at_next(next_infra, distance)
-        else:
-            # drive to next object:
-            self.drive_to_next(distance - next_infra.length)
+        try:
+            if next_infra.length > distance:
+                # stay on this object:
+                self.arrive_at_next(next_infra, distance)
+            else:
+                # drive to next object:
+                self.drive_to_next(distance - next_infra.length)
+        except Exception as e:
+            print("Oops!", e.__class__, "occurred.")
+
 
     def arrive_at_next(self, next_infra, location_offset):
         """

@@ -5,7 +5,9 @@ from components import Source, Sink, SourceSink, Bridge, Link, Intersection
 import pandas as pd
 from collections import defaultdict
 import networkx as nx
+import sys
 
+sys.setrecursionlimit(1500)
 
 # ---------------------------------------------------------------
 def set_lat_lon_bound(lat_min, lat_max, lon_min, lon_max, edge_ratio=0.02):
@@ -57,8 +59,7 @@ class BangladeshModel(Model):
     step_time = 1
     file_name = '../data/A3_data_clean.csv'
 
-    def __init__(self, probabilities=None,  seed=None, x_max=500, y_max=500, x_min=0, y_min=0):
-
+    def __init__(self, seed=None, probabilities=None, x_max=500, y_max=500, x_min=0, y_min=0):
 
         self.schedule = BaseScheduler(self)
         self.running = True
@@ -66,13 +67,16 @@ class BangladeshModel(Model):
         self.space = None
         self.sources = []
         self.sinks = []
+
+        # ADDED
+        self.probabilities = probabilities
+        self.arrived_car_dict = {'VehicleID': [], 'Travel_Time': []}
         self.seed = seed
+
         self.network_graph = self.create_network(pd.read_csv(self.file_name))
-        self.dic_arrivedcars = {'vehicleid': [], 'traveltime': []}
-        self.scenario_chances ={}
+
         self.generate_model()
 
-        self.probabilities = probabilities
     def generate_model(self):
         """
         generate the simulation model according to the csv file component information
@@ -158,7 +162,8 @@ class BangladeshModel(Model):
                     self.sources.append(agent.unique_id)
                     self.sinks.append(agent.unique_id)
                 elif model_type == 'bridge':
-                    agent = Bridge(row['id'], self, row['length'], name, row['road'], row['condition'])
+                    agent = Bridge(row['id'], self, row['length'], name, row['road'], row['condition'],
+                                   probabilities=self.probabilities)
                 elif model_type == 'link':
                     agent = Link(row['id'], self, row['length'], name, row['road'])
                 elif model_type == 'intersection':
@@ -196,10 +201,7 @@ class BangladeshModel(Model):
         self.add_path(source, sink)
         return self.path_ids_dict[source, sink]
 
-    def add_path(self, source, sink):
-        path = nx.shortest_path(self.network_graph, source, sink)
 
-        self.path_ids_dict[source, sink] = path
 
     def get_straight_route(self, source):
         """
@@ -207,18 +209,23 @@ class BangladeshModel(Model):
         """
         return self.path_ids_dict[source, None]
 
+    def add_path(self, source, sink):
+        path = nx.shortest_path(self.network_graph, source, sink)
+
+        self.path_ids_dict[source, sink] = path
+
     def create_network(self, df):
-        graph = nx.Graph()
+        G = nx.Graph()
 
         for row in df.index:
-            graph.add_node(df['id'][row])
+            G.add_node(df['id'][row])
 
         for row_index in range(0, len(df)):
             id1 = df.loc[row_index]['id']
             id2 = df.loc[row_index]['id'] + 1
-            graph.add_edge(id1, id2, length=df.iloc[row_index]['length'])
+            G.add_edge(id1, id2, length=df.iloc[row_index]['length'])
 
-        return graph
+        return G
 
     def step(self):
         """
