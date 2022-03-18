@@ -1,36 +1,51 @@
-# Data for Model Generation of Simple Transport Model Demo in MESA
+# Assignment 3 EPA1352 readme
 
-Created by: 
-Yilin HUANG 
+EPA1352 Group 6 
 
-Email:
-y.huang@tudelft.nl
-
-Version:
-1.1
+| Name    | Student Number |
+|:-------:|:--------:|
+| Ewout ter Hoeven  | 4493346 | 
+| Zoë Huizing | 4660455 |
+| Marlou Ceha | 4691539 |
+| Christiaan Ouwehand | 4293053 |
+| Timo Frazer | 4579992 |
 
 ## Introduction
 
-The simple transport model demo, see [../model/model.py](../model/model.py) for EPA1352 Advanced Simulation course Assignment 3, takes a `csv` input data file that specifies the infrastructure model components to be generated. The data format used **by the demo model** is described here. 
+The goal of this lab assignment is investigating critical road infrastructure in Bangladesh. This is done by calculating the delay for trucks driving on the N1, N2, and their N-class side roads longer than 25 km.
 
-## Format
+## Structure
+The directory structure is listed below:
 
-| Column    | Description   |
-|----------:|:--------------|
-| road      | On which road does the component belong to |
-| id        | **Unique ID** of the component |
-| model_type| Type (i.e. class) of the model component to be generated|
-| name      | Name of the object |
-| lat       | Latitude in Decimal Degrees|
-| lon       | Longitude in Decimal Degrees |
-| length    | Length of the object in meters |
+```
+├───data            Contains all the input and interim data
+├───img             Contains images, including the delay histogram
+├───model           Contains the Mesa model iterated upon, including experiments and a benchmark
+├───notebooks       Contains the Jupyter notebooks for EDA and analysis of both models
+├───report          Contains the report written
+├───results         Contains the results with average delay times and validation data
+```
+As seen above, two models have been developed for this assignment, a Mesa model with NetworkX component needed for the shortest path algorithm in a multiple road network. The [report](report/Report-EPA1352-G06-A3.pdf) discusses the results of the travel time due to potential bridge delay. 
 
-The column `road` is used by the model generation to classify model components by roads, i.e., on which road does a component belong to. The model generation assumes that the infrastructure model components of the same road is ordered sequentially. This means, e.g. in `demo-4.csv`, component `1000000` is connected to component `1000001`, that is connected to component `1000002`, that is connected to component `1000003`, etc., all of which are on road `N1`. Similarity, component `1000013` is connected to component `1000014`, that is connected to component `1000015`, etc., all of which are on road `N2`. Each model component has a unique id according to which the Mesa model is generated. Note that the same `intersection` component that connect different roads would have the same id. 
+## How to Use the MESA model 
 
-The column `model_type` is used by the model generation to identify which class of components to be generated. The `model_type` labels used in this column must be consistent with the labels in the `generate_model` routine. 
+The model will be run based on the (data/A3_data_clean.csv) file. This can be changed in the [model.py](model/model.py) file. To do so change the data_path in the model class to the desired file.
 
-The rest of the information is used to instantiate the components (objects). 
+The model itself is defined in [model.py](model/model.py) and the components used in the model are defined in the [components.py](model/components.py) file. In this file the network graph and shortest path algorythme is made. The statistical distribution of delay times is defined in [triangular_function.py](model/triangular_function.py).
 
-You may change the data format and structure if the model generation (`generate_model`) routine is adapted accordingly. 
+A few other files are available for conveniently interacting with the model:
+ - The model can be visualised with [model_viz.py](model/model_viz.py) file.
+ - To the run the different scenario's, [experiments.py](model/experiments.py) is used.
+ - Note: to run the moddel faster, all the print functions are commented.
 
-All data files contained in this directory are used as demonstration for model generation. They are not based on real data. 
+
+
+# step 2: Running simulation with above generated data in MESA
+
+The simulation is automatically run for all 5 scenarios with 10 replications each and the output is also saved in to a CSV defined in the model_run.py file.
+
+The simulation run csv can be found in the experiment folder. 
+
+# Step 3: Processing the output files in Jupyter Notebook to get results 
+
+The results are visalized in a Jupyter Notebook called [notebooks/A3_analysis.ipynb]  
