@@ -43,7 +43,7 @@ for scenario_id in range(0, 4):
             sim_model.step()
         # Turning dictionary into dataframe after each replication
         df1 = pd.DataFrame.from_dict(sim_model.arrived_car_dict)
-        df = df.append(df1)
+        df = pd.concat([df,df1])
         if reps == 5:
             print(f'Halfway through Scenario {scenario_id}')
     # Finally saving to csv for each scenario
