@@ -1,8 +1,17 @@
 from mesa import Agent
 from enum import Enum
-from triangular_function import get_delay_value
-import random
+from numpy.random import default_rng
+rng = default_rng()
 # ---------------------------------------------------------------
+
+# Define a dict with the delay function and parameters for each size class
+delay_dict = {
+    "XL": ("triangular", (60, 120, 240)),
+    "L": ("uniform", (45, 90)),
+    "M": ("uniform", (15, 60)),
+    "S": ("uniform", (10, 20)),}
+
+
 class Infra(Agent):
     """
     Base class for all infrastructure components
@@ -58,17 +67,13 @@ class Bridge(Infra):
         self.probabilities = probabilities
         self.broken = False
         self.delay_time = 0
-        # # Calculate broken state from scenario and bridge condition
-        # broken_chance = model.scenario_chances[f"Cat{self.condition}"]
-        # self.broken = broken_chance > random.uniform(0, 1)
-        #
-        # self.bridge_class = length_class
+
         if self.probabilities is not None:
             if self.condition == 'A':
-                if self.random.random() < self.probabilities['A'] :
+                if self.random.random() < self.probabilities['A']:
                     self.broken = True
             elif self.condition == 'B':
-                if self.random.random() < self.probabilities['B'] :
+                if self.random.random() < self.probabilities['B']:
                     self.broken = True
             elif self.condition == 'C':
                 if self.random.random() < self.probabilities['C']:
@@ -79,29 +84,33 @@ class Bridge(Infra):
 
         if self.broken:
             if self.length > 200:
-                self.delay_time = self.random.triangular(low=60, mode=120, high=240)
+                self.bridge_class = 'XL'
+                self.delay_time = self.get_delay_value(self.bridge_class)
             elif 50 < self.length <= 200:
-                self.delay_time = self.random.uniform(45, 90)
+                self.bridge_class = 'L'
+                self.delay_time = self.get_delay_value(self.bridge_class)
             elif 10 < self.length < 50:
-                self.delay_time = self.random.uniform(15, 60)
+                self.bridge_class = 'M'
+                self.delay_time = self.get_delay_value(self.bridge_class)
             else:
-                self.delay_time = self.random.uniform(10, 20)
+                self.bridge_class = 'S'
+                self.delay_time = self.get_delay_value(self.bridge_class)
         else:
             self.delay_time = 0
     def get_delay_time(self):
         return self.delay_time
-        # if self.broken:
-        #     self.delaytime =  get_delay_value(self.bridge_class)
-        # else:
-        #     self.delaytime = 0
 
-    #     # TODO
-    #     self.delay_time = self.random.randrange(0, 10)
-    #     # print(self.delay_time)
-    #
-    # # TODO
-    # def get_delay_time(self):
-    #     return self.delay_time
+
+    def get_delay_value(self, bridge_class):
+            # Function that returns a single delay time based on the bridge size class
+        if delay_dict[bridge_class][0] == "triangular":
+            return rng.triangular(*delay_dict[bridge_class][1])
+        if delay_dict[bridge_class][0] == "uniform":
+            return rng.uniform(*delay_dict[bridge_class][1])
+        else:
+            print("Unknown input!")
+            return
+
 
 
 # ---------------------------------------------------------------
@@ -260,7 +269,6 @@ class Vehicle(Agent):
         self.waiting_time = 0
         self.waited_at = None
         self.removed_at_step = None
-
         self.total_waiting_time = 0
 
     def __str__(self):
@@ -322,11 +330,9 @@ class Vehicle(Agent):
             self.removed_at_step = self.model.schedule.steps
             self.location.remove(self)
 
-            # travel time calculation and add to a dict
+            # travel time calculation and add to a dict and results to model dictionary
             travel_time = self.removed_at_step - self.generated_at_step
-            # add results to model dictionary
             self.model.arrived_car_dict['VehicleID'].append(self.unique_id)
-            # self.model.arrived_car_dict['VehicleID'].append(self.model.seed)
             self.model.arrived_car_dict['Travel_Time'].append(travel_time)
             return
 
@@ -340,15 +346,12 @@ class Vehicle(Agent):
                 return
             # else, continue driving
 
-        try:
             if next_infra.length > distance:
                 # stay on this object:
                 self.arrive_at_next(next_infra, distance)
             else:
                 # drive to next object:
                 self.drive_to_next(distance - next_infra.length)
-        except Exception as e:
-            print("Oops!", e.__class__, "occurred.")
 
 
     def arrive_at_next(self, next_infra, location_offset):

@@ -16,14 +16,14 @@ run_length = 5 * 24 * 60
 # run time 1000 ticks
 # run_length = 1000
 
-seed = 123
+seed = 1234567
 
-scenario_names = []
+scenarios = []
 probabilities = []
 
 # Loop to list out scenario output names
 for i in range(0, 5):
-    scenario_names.append("scenario" + str(i))
+    scenarios.append("scenario" + str(i))
 
 
 # Probabilities of bridges breaking down based on scenarios and bridge categories - A,B,C and D
@@ -34,10 +34,10 @@ probabilities = [{'A': 0, 'B': 0, 'C': 0, 'D': 0},
                  {'A': 5, 'B': 10, 'C': 20, 'D': 40}]
 
 # Loop for all 5 scenarios - each scenario runs for 10 replications
-for scenario_id in range(0, 4):
+for scenarionumber in range(0, 4):
     df = pd.DataFrame()
     for reps in range(10):
-        sim_model = BangladeshModel(seed=seed, probabilities=probabilities[scenario_id])
+        sim_model = BangladeshModel(seed=seed, probabilities=probabilities[scenarionumber])
         seed += seed
         for i in range(run_length):
             sim_model.step()
@@ -45,7 +45,7 @@ for scenario_id in range(0, 4):
         df1 = pd.DataFrame.from_dict(sim_model.arrived_car_dict)
         df = pd.concat([df,df1])
         if reps == 5:
-            print(f'Halfway through Scenario {scenario_id}')
+            print(f'Halfway through Scenario {scenarionumber}')
     # Finally saving to csv for each scenario
-    df.to_csv('../experiments/' + scenario_names[scenario_id] + '_timo.csv')
-    print(f'Scenario {scenario_id} has been finished.')
+    df.to_csv('../experiments/' + scenarios[scenarionumber] + '_timo.csv')
+    print(f'Scenario {scenarionumber} has been finished.')

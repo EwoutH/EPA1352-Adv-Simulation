@@ -67,14 +67,10 @@ class BangladeshModel(Model):
         self.space = None
         self.sources = []
         self.sinks = []
-
-        # ADDED
         self.probabilities = probabilities
-        self.arrived_car_dict = {'VehicleID': [], 'Travel_Time': []}
         self.seed = seed
-
+        self.arrived_car_dict = {'VehicleID': [], 'Travel_Time': []}
         self.network_graph = self.create_network(pd.read_csv(self.file_name))
-
         self.generate_model()
 
     def generate_model(self):
@@ -187,7 +183,7 @@ class BangladeshModel(Model):
             if sink is not source:
                 break
 
-        self.add_path(source, sink)
+        self.create_path(source, sink)
 
         return self.path_ids_dict[source, sink]
 
@@ -198,7 +194,7 @@ class BangladeshModel(Model):
             if sink is not source:
                 break
 
-        self.add_path(source, sink)
+        self.create_path(source, sink)
         return self.path_ids_dict[source, sink]
 
 
@@ -209,23 +205,22 @@ class BangladeshModel(Model):
         """
         return self.path_ids_dict[source, None]
 
-    def add_path(self, source, sink):
+    def create_path(self, source, sink):
         path = nx.shortest_path(self.network_graph, source, sink)
 
         self.path_ids_dict[source, sink] = path
 
     def create_network(self, df):
-        G = nx.Graph()
-
-        for row in df.index:
-            G.add_node(df['id'][row])
-
+        graph = nx.Graph()
         for row_index in range(0, len(df)):
             id1 = df.loc[row_index]['id']
             id2 = df.loc[row_index]['id'] + 1
-            G.add_edge(id1, id2, length=df.iloc[row_index]['length'])
+            graph.add_edge(id1, id2, length=df.iloc[row_index]['length'])
 
-        return G
+        for row in df.index:
+            graph.add_node(df['id'][row])
+
+        return graph
 
     def step(self):
         """
