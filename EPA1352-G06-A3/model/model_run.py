@@ -44,6 +44,8 @@ for scenario_id in range(0, 4):
         # Turning dictionary into dataframe after each replication
         df1 = pd.DataFrame.from_dict(sim_model.arrived_car_dict)
         df = df.append(df1)
+        if reps == 5:
+            print(f'Halfway through Scenario {scenario_id}')
     # Finally saving to csv for each scenario
     df.to_csv('../experiments/' + scenario_names[scenario_id] + '_timo.csv')
     print(f'Scenario {scenario_id} has been finished.')
