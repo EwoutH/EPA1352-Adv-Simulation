@@ -45,4 +45,5 @@ for scenario_id in range(0, 4):
         df1 = pd.DataFrame.from_dict(sim_model.arrived_car_dict)
         df = df.append(df1)
     # Finally saving to csv for each scenario
-    df.to_csv('../experiments' + scenario_names[scenario_id] + '.csv')
+    df.to_csv('../experiments/' + scenario_names[scenario_id] + '_timo.csv')
+    print(f'Scenario {scenario_id} has been finished.')
