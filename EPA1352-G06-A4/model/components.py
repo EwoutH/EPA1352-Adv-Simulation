@@ -1,8 +1,17 @@
 from mesa import Agent
 from enum import Enum
-
-
+from numpy.random import default_rng
+rng = default_rng()
 # ---------------------------------------------------------------
+
+# Define a dict with the delay function and parameters for each size class
+delay_dict = {
+    "XL": ("triangular", (60, 120, 240)),
+    "L": ("uniform", (45, 90)),
+    "M": ("uniform", (15, 60)),
+    "S": ("uniform", (10, 20)),}
+
+
 class Infra(Agent):
     """
     Base class for all infrastructure components
@@ -51,27 +60,57 @@ class Bridge(Infra):
     """
 
     def __init__(self, unique_id, model, length=0,
-                 name='Unknown', road_name='Unknown', condition='Unknown'):
+                 name='Unknown', road_name='Unknown', condition='Unknown',  probabilities=None):
         super().__init__(unique_id, model, length, name, road_name)
 
         self.condition = condition
-        self.delay_time = 0
+        self.probabilities = probabilities
         self.broken = False
+        self.delay_time = 0
 
-    def get_delay_time(self):
-        # 1 step = 1 min
+        if self.probabilities is not None:
+            if self.condition == 'A':
+                if self.random.random() < self.probabilities['A']:
+                    self.broken = True
+            elif self.condition == 'B':
+                if self.random.random() < self.probabilities['B']:
+                    self.broken = True
+            elif self.condition == 'C':
+                if self.random.random() < self.probabilities['C']:
+                    self.broken = True
+            else:
+                if self.random.random() < self.probabilities['D']:
+                    self.broken = True
+
         if self.broken:
             if self.length > 200:
-                self.delay_time = self.random.triangular(60, 120, 240)
-            if 50 < self.length <= 200:
-                self.delay_time = self.random.uniform(45, 90)
-            if 10 < self.length <= 50:
-                self.delay_time = self.random.uniform(15, 60)
-            if self.length <= 10:
-                self.delay_time = self.random.uniform(10, 20)
+                self.bridge_class = 'XL'
+                self.delay_time = self.get_delay_value(self.bridge_class)
+            elif 50 < self.length <= 200:
+                self.bridge_class = 'L'
+                self.delay_time = self.get_delay_value(self.bridge_class)
+            elif 10 < self.length < 50:
+                self.bridge_class = 'M'
+                self.delay_time = self.get_delay_value(self.bridge_class)
+            else:
+                self.bridge_class = 'S'
+                self.delay_time = self.get_delay_value(self.bridge_class)
         else:
             self.delay_time = 0
+    def get_delay_time(self):
         return self.delay_time
+
+
+    def get_delay_value(self, bridge_class):
+            # Function that returns a single delay time based on the bridge size class
+        if delay_dict[bridge_class][0] == "triangular":
+            return rng.triangular(*delay_dict[bridge_class][1])
+        if delay_dict[bridge_class][0] == "uniform":
+            return rng.uniform(*delay_dict[bridge_class][1])
+        else:
+            print("Unknown input!")
+            return
+
 
 
 # ---------------------------------------------------------------
@@ -101,11 +140,11 @@ class Sink(Infra):
     def remove(self, vehicle):
         self.model.schedule.remove(vehicle)
         self.vehicle_removed_toggle = not self.vehicle_removed_toggle
-        print(str(self) + ' REMOVE ' + str(vehicle))
+        # print(str(self) + ' REMOVE ' + str(vehicle))
 
-
-# ---------------------------------------------------------------
-
+#
+# # ---------------------------------------------------------------
+#
 class Source(Infra):
     """
     Source generates vehicles
@@ -148,7 +187,7 @@ class Source(Infra):
                 Source.truck_counter += 1
                 self.vehicle_count += 1
                 self.vehicle_generated_flag = True
-                print(str(self) + " GENERATE " + str(agent))
+                # print(str(self) + " GENERATE " + str(agent))
         except Exception as e:
             print("Oops!", e.__class__, "occurred.")
 
@@ -158,6 +197,7 @@ class SourceSink(Source, Sink):
     """
     Generates and removes trucks
     """
+
     pass
 
 
@@ -229,6 +269,7 @@ class Vehicle(Agent):
         self.waiting_time = 0
         self.waited_at = None
         self.removed_at_step = None
+        self.total_waiting_time = 0
 
     def __str__(self):
         return "Vehicle" + str(self.unique_id) + \
@@ -236,7 +277,6 @@ class Vehicle(Agent):
                " " + str(self.state) + '(' + str(self.waiting_time) + ') ' + \
                str(self.location) + '(' + str(self.location.vehicle_count) + ') ' + str(self.location_offset)
 
-    # TODO Why a random path?
     def set_path(self):
         """
         Set the origin destination path of the vehicle
@@ -259,7 +299,7 @@ class Vehicle(Agent):
         """
         To print the vehicle trajectory at each step
         """
-        print(self)
+        # print(self)
 
     def drive(self):
 
@@ -289,22 +329,30 @@ class Vehicle(Agent):
             self.arrive_at_next(next_infra, 0)
             self.removed_at_step = self.model.schedule.steps
             self.location.remove(self)
+
+            # travel time calculation and add to a dict and results to model dictionary
+            travel_time = self.removed_at_step - self.generated_at_step
+            self.model.arrived_car_dict['VehicleID'].append(self.unique_id)
+            self.model.arrived_car_dict['Travel_Time'].append(travel_time)
             return
+
         elif isinstance(next_infra, Bridge):
             self.waiting_time = next_infra.get_delay_time()
             if self.waiting_time > 0:
                 # arrive at the bridge and wait
                 self.arrive_at_next(next_infra, 0)
                 self.state = Vehicle.State.WAIT
+                self.total_waiting_time += self.waiting_time
                 return
             # else, continue driving
 
-        if next_infra.length > distance:
-            # stay on this object:
-            self.arrive_at_next(next_infra, distance)
-        else:
-            # drive to next object:
-            self.drive_to_next(distance - next_infra.length)
+            if next_infra.length > distance:
+                # stay on this object:
+                self.arrive_at_next(next_infra, distance)
+            else:
+                # drive to next object:
+                self.drive_to_next(distance - next_infra.length)
+
 
     def arrive_at_next(self, next_infra, location_offset):
         """

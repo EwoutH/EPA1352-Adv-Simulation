@@ -54,18 +54,18 @@ class BangladeshModel(Model):
     """
 
     step_time = 1
-
-    # file_name = '../data/demo-4.csv'
     file_name = '../data/df_road_N1andN2.csv'
 
-    def __init__(self, seed=None, x_max=500, y_max=500, x_min=0, y_min=0):
-
+    def __init__(self, probabilities=None, seed=None, x_max=500, y_max=500, x_min=0, y_min=0):
         self.schedule = BaseScheduler(self)
         self.running = True
         self.path_ids_dict = defaultdict(lambda: pd.Series())
         self.space = None
         self.sources = []
         self.sinks = []
+        self.probabilities = probabilities
+        self.seed = seed
+        self.arrived_car_dict = {'VehicleID': [], 'Travel_Time': []}
         self.G = nx.Graph()
 
         self.generate_model()
@@ -80,12 +80,7 @@ class BangladeshModel(Model):
         df = pd.read_csv(self.file_name)
 
         # a list of names of roads to be generated
-        # TODO You can also read in the road column to generate this list automatically
-        # roads = ['N1', 'N2']
-
-        roads = ['N1', 'N2', 'N105', 'N102', 'N104', 'N204', 'N207']
-
-        # roads = df['road'].unique()
+        roads = df['road'].unique().tolist()
 
         df_objects_all = []
         for road in roads:
