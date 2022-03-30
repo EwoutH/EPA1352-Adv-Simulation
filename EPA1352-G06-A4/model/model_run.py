@@ -11,7 +11,8 @@ sys.setrecursionlimit(1500)
 # ---------------------------------------------------------------
 
 # run time 5 x 24 hours; 1 tick 1 minute
-run_length = 5 * 24 * 60
+# run_length = 5 * 24 * 60
+run_length = 24*60
 seed = 1234
 
 scenarios = []

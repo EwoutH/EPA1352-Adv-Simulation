@@ -71,7 +71,7 @@ class BangladeshModel(Model):
         self.seed = seed
         self.traffic = traffic
         self.generation_frequency = 5
-        self.arrived_car_dict = {'VehicleID': [], 'Travel_Time': []}
+        self.arrived_car_dict = {'VehicleID': [], 'Travel_Time': [], 'Startpoint':[],'Endpoint':[]}
         self.G = nx.Graph()
 
         self.generate_model()

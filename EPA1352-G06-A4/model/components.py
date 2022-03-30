@@ -343,6 +343,8 @@ class Vehicle(Agent):
             travel_time = self.removed_at_step - self.generated_at_step
             self.model.arrived_car_dict['VehicleID'].append(self.unique_id)
             self.model.arrived_car_dict['Travel_Time'].append(travel_time)
+            self.model.arrived_car_dict['Startpoint'].append(self.generated_by)
+            self.model.arrived_car_dict['Endpoint'].append(self.path_ids.iloc[-1])
             return
 
         elif isinstance(next_infra, Bridge):
