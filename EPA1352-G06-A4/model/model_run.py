@@ -12,7 +12,7 @@ sys.setrecursionlimit(1500)
 
 # run time 5 x 24 hours; 1 tick 1 minute
 # run_length = 5 * 24 * 60
-run_length = 24*60
+run_length = 5 * 24 * 60
 seed = 1234
 
 scenarios = []
@@ -33,7 +33,7 @@ probabilities = [{'A': 0, 'B': 0, 'C': 0, 'D': 0},
 # Loop for all 5 scenarios - each scenario runs for 10 replications
 for scenarionumber in range(0, 5):
     df = pd.DataFrame()
-    for reps in range(10):
+    for reps in range(5):
         sim_model = BangladeshModel(probabilities[scenarionumber], seed=seed)
         seed += 1
         for i in range(run_length):
@@ -41,8 +41,7 @@ for scenarionumber in range(0, 5):
         # Turning dictionary into dataframe after each replication
         df1 = pd.DataFrame.from_dict(sim_model.arrived_car_dict)
         df = pd.concat([df,df1])
-        if reps == 4:
-            print(f'Halfway through Scenario {scenarionumber}')
+        print(f'Replication {reps} of scenario {scenarionumber} finished.')
     # Finally saving to csv for each scenario
     df.to_csv(f'../experiments/results_scenario_{scenarionumber}.csv')
     print(f'Scenario {scenarionumber} has been finished.')
