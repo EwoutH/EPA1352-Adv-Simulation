@@ -52,11 +52,15 @@ class BangladeshModel(Model):
         all sinks in the network
 
     """
+    traffic_data = pd.read_csv("../data/traffic_per_road.csv")
+    traffic_data.set_index("Road", inplace=True)
+    traffic_fractions = traffic_data["Percentage of traffic"] / 100
+    traffic_fractions = traffic_fractions.to_dict()
 
     step_time = 1
     file_name = '../data/df_road_N1andN2.csv'
 
-    def __init__(self, probabilities=None, seed=None, x_max=500, y_max=500, x_min=0, y_min=0):
+    def __init__(self, probabilities=None, seed=None, traffic=traffic_fractions, x_max=500, y_max=500, x_min=0, y_min=0):
         self.schedule = BaseScheduler(self)
         self.running = True
         self.path_ids_dict = defaultdict(lambda: pd.Series())
@@ -65,6 +69,7 @@ class BangladeshModel(Model):
         self.sinks = []
         self.probabilities = probabilities
         self.seed = seed
+        self.traffic = traffic
         self.arrived_car_dict = {'VehicleID': [], 'Travel_Time': []}
         self.G = nx.Graph()
 
