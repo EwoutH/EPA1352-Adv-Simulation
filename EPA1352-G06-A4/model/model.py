@@ -70,6 +70,7 @@ class BangladeshModel(Model):
         self.probabilities = probabilities
         self.seed = seed
         self.traffic = traffic
+        self.generation_frequency = 5
         self.arrived_car_dict = {'VehicleID': [], 'Travel_Time': []}
         self.G = nx.Graph()
 

@@ -1,6 +1,8 @@
 from mesa import Agent
 from enum import Enum
+import random
 from numpy.random import default_rng
+import numpy
 rng = default_rng()
 # ---------------------------------------------------------------
 
@@ -164,13 +166,20 @@ class Source(Infra):
     ...
 
     """
-
     truck_counter = 0
-    generation_frequency = 5
-    vehicle_generated_flag = False
+
+    def __init__(self, unique_id, model, length, name, road_name):
+        super().__init__(unique_id, model, length, name, road_name)
+
+        self.vehicle_generated_flag = False
+
+        self.generation_bias = self.model.traffic[self.road_name] / numpy.mean(list(self.model.traffic.values()))
+        self.generation_chance = 1/self.model.generation_frequency * self.generation_bias
+        if self.generation_chance > 1:
+            print(f"WARNING: Generation chance for {self} larger than 1, {self.generation_chance}")
 
     def step(self):
-        if self.model.schedule.steps % self.generation_frequency == 0:
+        if random.random() < self.generation_chance:
             self.generate_truck()
         else:
             self.vehicle_generated_flag = False
