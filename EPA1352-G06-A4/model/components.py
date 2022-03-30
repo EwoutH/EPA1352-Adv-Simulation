@@ -4,14 +4,8 @@ import random
 from numpy.random import default_rng
 import numpy
 rng = default_rng()
+from triangular_function import get_delay_value
 # ---------------------------------------------------------------
-
-# Define a dict with the delay function and parameters for each size class
-delay_dict = {
-    "XL": ("triangular", (60, 120, 240)),
-    "L": ("uniform", (45, 90)),
-    "M": ("uniform", (15, 60)),
-    "S": ("uniform", (10, 20)),}
 
 
 class Infra(Agent):
@@ -62,57 +56,22 @@ class Bridge(Infra):
     """
 
     def __init__(self, unique_id, model, length=0,
-                 name='Unknown', road_name='Unknown', condition='Unknown',  probabilities=None):
+                 name='Unknown', road_name='Unknown', condition='Unknown', length_class='Unknown'):
         super().__init__(unique_id, model, length, name, road_name)
 
         self.condition = condition
-        self.probabilities = probabilities
-        self.broken = False
-        self.delay_time = 0
 
-        if self.probabilities is not None:
-            if self.condition == 'A':
-                if self.random.random() < self.probabilities['A']:
-                    self.broken = True
-            elif self.condition == 'B':
-                if self.random.random() < self.probabilities['B']:
-                    self.broken = True
-            elif self.condition == 'C':
-                if self.random.random() < self.probabilities['C']:
-                    self.broken = True
-            else:
-                if self.random.random() < self.probabilities['D']:
-                    self.broken = True
+        # Calculate broken state from scenario and bridge condition
+        broken_chance = model.scenario_chances[str(self.condition)]
+        self.broken = broken_chance > random.uniform(0, 1)
 
-        if self.broken:
-            if self.length > 200:
-                self.bridge_class = 'XL'
-                self.delay_time = self.get_delay_value(self.bridge_class)
-            elif 50 < self.length <= 200:
-                self.bridge_class = 'L'
-                self.delay_time = self.get_delay_value(self.bridge_class)
-            elif 10 < self.length < 50:
-                self.bridge_class = 'M'
-                self.delay_time = self.get_delay_value(self.bridge_class)
-            else:
-                self.bridge_class = 'S'
-                self.delay_time = self.get_delay_value(self.bridge_class)
-        else:
-            self.delay_time = 0
+        self.bridge_class = length_class
+
     def get_delay_time(self):
-        return self.delay_time
-
-
-    def get_delay_value(self, bridge_class):
-            # Function that returns a single delay time based on the bridge size class
-        if delay_dict[bridge_class][0] == "triangular":
-            return rng.triangular(*delay_dict[bridge_class][1])
-        if delay_dict[bridge_class][0] == "uniform":
-            return rng.uniform(*delay_dict[bridge_class][1])
+        if self.broken:
+            return get_delay_value(self.bridge_class)
         else:
-            print("Unknown input!")
-            return
-
+            return 0
 
 
 # ---------------------------------------------------------------

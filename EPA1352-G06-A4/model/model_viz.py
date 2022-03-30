@@ -67,11 +67,6 @@ def agent_portrayal(agent):
 Launch the animation server 
 Open a browser tab 
 """
-probabilities = [{'A': 0, 'B': 0, 'C': 0, 'D': 0},
-                 {'A': 0, 'B': 0, 'C': 0, 'D': 5},
-                 {'A': 0, 'B': 0, 'C': 5, 'D': 10},
-                 {'A': 0, 'B': 5, 'C': 10, 'D': 20},
-                 {'A': 5, 'B': 10, 'C': 20, 'D': 40}]
 
 canvas_width = 800
 canvas_height = 800
@@ -81,7 +76,7 @@ space = SimpleCanvas(agent_portrayal, canvas_width, canvas_height)
 server = ModularServer(BangladeshModel,
                        [space],
                        "Transport Model Demo",
-                       {"probabilities": probabilities,
+                       {"scenario": 4,
                         "seed": 1234567})
 
 # The default port

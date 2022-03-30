@@ -5,6 +5,7 @@ from components import Source, Sink, SourceSink, Bridge, Link, Intersection
 import pandas as pd
 from collections import defaultdict
 import networkx as nx
+import math
 
 # ---------------------------------------------------------------
 def set_lat_lon_bound(lat_min, lat_max, lon_min, lon_max, edge_ratio=0.02):
@@ -60,7 +61,7 @@ class BangladeshModel(Model):
     step_time = 1
     file_name = '../data/df_road_N1andN2.csv'
 
-    def __init__(self, probabilities=None, seed=None, traffic=traffic_fractions, x_max=500, y_max=500, x_min=0, y_min=0):
+    def __init__(self, scenario, seed=None, traffic=traffic_fractions, x_max=500, y_max=500, x_min=0, y_min=0):
         self.schedule = BaseScheduler(self)
         self.running = True
         self.path_ids_dict = defaultdict(lambda: pd.Series())
@@ -68,7 +69,8 @@ class BangladeshModel(Model):
         self.sources = []
         self.sinks = []
         self.SourceSinks = []
-        self.probabilities = probabilities
+        self.scenario = scenario
+        self.scenario_chances = {}
         self.seed = seed
         self.traffic = traffic
         self.generation_frequency = 5
@@ -86,8 +88,22 @@ class BangladeshModel(Model):
 
         df = pd.read_csv(self.file_name)
 
+        # Define bright length bins and labels
+        length_bins = [0, 10, 50, 200, math.inf]
+        length_labels = ['S', 'M', 'L', 'XL']
+
+        # Categorize bridges per length class
+        df["length_class"] = pd.cut(df["length"], bins=length_bins, include_lowest=False, right=False, labels=length_labels)
+
         # a list of names of roads to be generated
         roads = df['road'].unique().tolist()
+
+        # Read in the scenario table
+        scenarios_df = pd.read_csv('../data/scenario_delays.csv', sep=';', index_col='Scenario')
+        scenarios_df = scenarios_df / 100  # percent to fraction
+
+        # Create scenario dictionary with break-down chance for each bridge type
+        self.scenario_chances = scenarios_df.loc[[self.scenario]].to_dict(orient="records")[0]
 
         df_objects_all = []
         for road in roads:
@@ -159,7 +175,7 @@ class BangladeshModel(Model):
                     self.sinks.append(agent.unique_id)
                     self.SourceSinks.append(agent)
                 elif model_type == 'bridge':
-                    agent = Bridge(row['id'], self, row['length'], name, row['road'], row['condition'])
+                    agent = Bridge(row['id'], self, row['length'], name, row['road'], row['condition'], row['length_class'])
                 elif model_type == 'link':
                     agent = Link(row['id'], self, row['length'], name, row['road'])
                 elif model_type == 'intersection':
