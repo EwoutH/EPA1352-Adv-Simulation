@@ -31,9 +31,9 @@ probabilities = [{'A': 0, 'B': 0, 'C': 0, 'D': 0},
                  {'A': 5, 'B': 10, 'C': 20, 'D': 40}]
 
 # Loop for all 5 scenarios - each scenario runs for 10 replications
-for scenarionumber in range(0, 4):
+for scenarionumber in range(0, 5):
     df = pd.DataFrame()
-    for reps in range(2):
+    for reps in range(10):
         sim_model = BangladeshModel(probabilities[scenarionumber], seed=seed)
         seed += 1
         for i in range(run_length):
@@ -41,7 +41,7 @@ for scenarionumber in range(0, 4):
         # Turning dictionary into dataframe after each replication
         df1 = pd.DataFrame.from_dict(sim_model.arrived_car_dict)
         df = pd.concat([df,df1])
-        if reps == 1:
+        if reps == 4:
             print(f'Halfway through Scenario {scenarionumber}')
     # Finally saving to csv for each scenario
     df.to_csv(f'../experiments/results_scenario_{scenarionumber}.csv')
