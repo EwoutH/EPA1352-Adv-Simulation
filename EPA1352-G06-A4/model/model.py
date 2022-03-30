@@ -67,6 +67,7 @@ class BangladeshModel(Model):
         self.space = None
         self.sources = []
         self.sinks = []
+        self.SourceSinks = []
         self.probabilities = probabilities
         self.seed = seed
         self.traffic = traffic
@@ -156,6 +157,7 @@ class BangladeshModel(Model):
                     agent = SourceSink(row['id'], self, row['length'], name, row['road'])
                     self.sources.append(agent.unique_id)
                     self.sinks.append(agent.unique_id)
+                    self.SourceSinks.append(agent)
                 elif model_type == 'bridge':
                     agent = Bridge(row['id'], self, row['length'], name, row['road'], row['condition'])
                 elif model_type == 'link':
@@ -170,6 +172,12 @@ class BangladeshModel(Model):
                     x = row['lon']
                     self.space.place_agent(agent, (x, y))
                     agent.pos = (x, y)
+
+        source_dict = {}
+        for s in self.SourceSinks:
+            source_dict[s.unique_id] = [s.road_name, s.pos]
+        source_df = pd.DataFrame.from_dict(source_dict, orient='index', columns=["Road", "Coordinates"])
+        source_df.to_csv("../experiments/source_data.csv")
 
     def get_straight_route(self, source):
         return self.get_route(source, None)
