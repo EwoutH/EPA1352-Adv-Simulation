@@ -30,3 +30,4 @@ for scenario in range(0, 5):
     # Finally saving to csv for each scenario
     df.to_csv(f'../experiments/results_scenario_{scenario}.csv')
     print(f'Scenario {scenario} has been finished.')
+print("Finished!")
