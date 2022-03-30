@@ -61,17 +61,20 @@ class BangladeshModel(Model):
     step_time = 1
     file_name = '../data/df_road_N1andN2.csv'
 
-    def __init__(self, scenario, seed=None, traffic=traffic_fractions, x_max=500, y_max=500, x_min=0, y_min=0):
+    def __init__(self, scenario, seed=None, run_length=0, cooldown=0, traffic=traffic_fractions, x_max=500, y_max=500, x_min=0, y_min=0):
         self.schedule = BaseScheduler(self)
         self.running = True
         self.path_ids_dict = defaultdict(lambda: pd.Series())
         self.space = None
+        self.generate_vehicles = True
         self.sources = []
         self.sinks = []
         self.SourceSinks = []
         self.scenario = scenario
         self.scenario_chances = {}
         self.seed = seed
+        self.run_length = run_length + cooldown  # Cooldown happens after regular run length
+        self.cooldown = cooldown
         self.traffic = traffic
         self.generation_frequency = 5
         self.arrived_car_dict = {'VehicleID': [], 'Travel_Time': [], 'Startpoint':[],'Endpoint':[]}
@@ -194,6 +197,11 @@ class BangladeshModel(Model):
             source_dict[s.unique_id] = [s.road_name, s.pos]
         source_df = pd.DataFrame.from_dict(source_dict, orient='index', columns=["Road", "Coordinates"])
         source_df.to_csv("../experiments/source_data.csv")
+
+        for _ in range(self.run_length):
+            self.step()
+            if self.schedule.steps >= (self.run_length - self.cooldown):
+                self.generate_vehicles = False
 
     def get_straight_route(self, source):
         return self.get_route(source, None)

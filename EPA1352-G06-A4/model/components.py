@@ -138,7 +138,7 @@ class Source(Infra):
             print(f"WARNING: Generation chance for {self} larger than 1, {self.generation_chance}")
 
     def step(self):
-        if random.random() < self.generation_chance:
+        if random.random() < self.generation_chance and self.model.generate_vehicles:
             self.generate_truck()
         else:
             self.vehicle_generated_flag = False
