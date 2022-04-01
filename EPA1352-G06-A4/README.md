@@ -1,25 +1,33 @@
 # Example README File
 
-Created by: EPA1352 Group xx 
+Created by: EPA1352 Group 06 
 
-| Name    | Student Number |
-|:-------:|:--------|
-| Mary White  | 1234567 | 
-| David Brown | 7654321 |
+|        Name         | Student Number |
+|:-------------------:|:---------------|
+|     Zoé Huizing     | 4660455        | 
+| Christiaan Ouwehand | 4293053        |
+|     Timo Frazer     | 4579992        |
+|  Ewout ter Hoeven   | 4493346        |
+|     Marlou Ceha     | 4691539        |
 
 
 ## Introduction
 
-Every project should have a README file to help a first-time user understand what it is about and how they might be able to use it. This file is where you (as a group) shall provide the information needed by the TAs to evaluate and grade your work. 
+For this assignment a CSV file was created for input data. 
 
-If you are looking for information about the Demo model of Assignment 3, navigate to the [model/README.md](model/README.md) in the [model](model) directory. Have **fun** modeling in Python! 
+- Traffic data: data/traffic_per_road.csv
+- Road information: data/df_road_N1andN2.csv
+ 
 
 ## How to Use
 
-Include whatever you think is necessary for someone to understand your work. The README file is usually the first file someone will see and open. It doesn't need to explain what might be obvious, but it should point out the most important things for someone looking at your work. For example, how to launch your program, what are the main files, where to find them, etc. 
+Notebooks:
 
-### Format
+- travel_time_analysis is used to analyse the vulnerability with scenarios and average travel times. 
+- count_amount_bridges_type the vulnerability is calculated by comparing the number of bridges.
+- travel_time_analysis_iterations the importance and explanation of cooldown and runlength is described.
+- traffic_EDA,the traffic data is converted from HTML to CSV.
 
-Most README files for data or software projects are now written in Markdown format, like this document. There are some different flavours, but they are easy to write. See here for more information https://www.markdownguide.org/basic-syntax 
+The results of the sceranios for travel time delay are modelled in model.py and the CSV's are saved in the experiments folder. 
 
-Most IDEs can render Markdown files directly. 
+The results of the simulation experiments are documented in G06_Report_A4.
